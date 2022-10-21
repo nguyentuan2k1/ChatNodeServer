@@ -1,0 +1,2 @@
+MONGO_URL = mongodb+srv://IMD246:IMD246@chatappofme.7asdwag.mongodb.net/?retryWrites=true
+create .env again when pull code
