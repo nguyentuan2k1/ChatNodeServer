@@ -126,6 +126,7 @@ exports.loginByToken = async (req, res) => {
 
 exports.register = async (req, res) => {
         try {
+                console.log(req.body.email);
                 const checkEmail = await User.findOne({ email: req.body.email });
                 if (checkEmail) {
                         return res.status(403).json(new BaseResponse(
@@ -138,14 +139,11 @@ exports.register = async (req, res) => {
                                 )
                         ));
                 }
-                const salt = await bcrypt.genSalt(10);
-                const hashPass = await bcrypt.hash(req.body.password, salt);
                 const newUser = new User({
                         email: req.body.email,
                         name: req.body.name,
-                        password: hashPass,
                         isDarkMode: false,
-                        urlImage: ""
+                        urlImage: req.urlImage
                 });
                 const user = await newUser.save();
                 const newPresence = new Presence({
@@ -179,6 +177,7 @@ exports.register = async (req, res) => {
 }
 
 exports.login = async (req, res) => {
+        console.log(req.body.email);
         try {
                 const user = await User.findOne({ email: req.body.email });
                 if (!user) {
@@ -193,20 +192,6 @@ exports.login = async (req, res) => {
                                         )
                                 ));
                 }
-                const validate = await bcrypt.compare(req.body.password, user.password);
-                if (!validate) {
-                        return res.status(400).json(new BaseResponse(
-                                -1,
-                                Date.now(),
-                                [],
-                                new Errors(
-                                        400,
-                                        "Wrong credentials",
-                                ))
-                        );
-                }
-
-                // Generate an access token
                 var accessToken = jwt.sign({ id: user.id }, "mySecrectKey");
 
                 var checkAccess = await AccessToken.findOne({
@@ -255,6 +240,87 @@ exports.login = async (req, res) => {
                 ));
         }
 }
+
+
+exports.loginByGoogle = async (req, res) => {
+        try {
+                var user = await User.findOne({ email: req.body.email });
+                if (!user) {
+                        const newUser = new User({
+                                email: req.body.email,
+                                name: req.body.name,
+                                isDarkMode: false,
+                                urlImage: req.body.urlImage
+                        }).save();
+                        user = await User.findById((await newUser).id)
+                        // return res.status(400).json(
+                        //         new BaseResponse(
+                        //                 -1,
+                        //                 Date.now(),
+                        //                 [],
+                        //                 new Errors(
+                        //                         400,
+                        //                         "Wrong credentials",
+                        //                 )
+                        //         ));
+                }
+                var accessToken = jwt.sign({ id: user.id }, "mySecrectKey");
+
+                var checkAccess = await AccessToken.findOne({
+                        userID: user.id
+                })
+                if (checkAccess != null) {
+                        accessToken = checkAccess.accessToken;
+                }
+                else {
+                        const access = new AccessToken({
+                                accessToken: accessToken,
+                                userID: user.id
+                        }
+                        );
+                        await access.save();
+                        checkAccess = access;
+                }
+                var userPresence = await Presence.findOne({ userID: user.id });
+                if (!userPresence) {
+                        userPresence = await new Presence({
+                                userID: user.id,
+                                presence: true,
+                        }).save();
+                }
+                else {
+                        await Presence.findOneAndUpdate({ userID: user.id }, {
+                                $set: {
+                                        presence: true,
+                                }
+                        });
+                }
+                return res.status(200).json(
+                        new BaseResponse(
+                                1,
+                                Date.now(),
+                                [
+                                        { accessToken: checkAccess, user: user, userPresence: userPresence }
+                                ],
+                                new Errors(
+                                        200,
+                                        "",
+                                )
+                        ));
+
+        } catch (err) {
+                return res.status(500).json(new BaseResponse(
+                        -1,
+                        Date.now(),
+                        [],
+                        new Errors(
+                                500,
+                                err.toString(),
+                        )
+                ));
+        }
+}
+
 
 exports.createRoom = async (req, res) => {
         try {

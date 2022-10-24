@@ -4,14 +4,16 @@ const authController = require('../controllers/authController');
 
 router.post("/presence", authController.getPresence);
 
-router.post("/createRoom",authController.createRoom);
+router.post("/createRoom", authController.createRoom);
 //REGISTER
-router.post("/register",authController.register);
+router.post("/register", authController.register);
 //LOGIN
-router.post("/login",authController.login);
+router.post("/login", authController.login);
 //Login With Token
 router.post("/loginwithaccesstoken", authController.loginByToken);
 //Logout
 router.post("/logout", authController.logout);
+
+router.post("/loginwithgoogle", authController.loginByGoogle);
 
 module.exports = router;

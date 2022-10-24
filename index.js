@@ -23,6 +23,10 @@ mongoose
 
 const io = new Server(server);
 
+io.on("connection", (socket) => {
+
+});
+
 app.use("/api/auth", authRouter);
 
 

@@ -10,10 +10,6 @@ const UserSchema = new mongoose.Schema({
                 type: String,
                 required: true,
         },
-        password: {
-                type: String,
-                required: true,
-        },
         isDarkMode: {
                 type: Boolean,
                 default: false,
@@ -21,7 +17,7 @@ const UserSchema = new mongoose.Schema({
         urlImage: {
                 type: String,
                 default: "",
-        }
+        },
 }, { timeStamp: true }
 );
 module.exports = mongoose.model("User", UserSchema);
