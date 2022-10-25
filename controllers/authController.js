@@ -1,13 +1,11 @@
 const User = require('../models/User');
 const AccessToken = require('../models/AccessToken');
 const Presence = require('../models/Presence');
-const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const BaseResponse = require('../models/BaseResponse');
 const Errors = require('../models/Errors');
 const Chat = require('../models/Chat');
-
-
+const Friends = require('../models/Friends');
 exports.logout = async (req, res) => {
         try {
                 const user = await User.findById(req.body.userID);
@@ -36,7 +34,6 @@ exports.logout = async (req, res) => {
                                 1,
                                 Date.now(),
                                 [
-
                                 ],
                                 new Errors(
                                         200,
@@ -71,6 +68,14 @@ exports.loginByToken = async (req, res) => {
                         });
                         const userPresence = await Presence.findById(updatePresence);
                         if (user != null) {
+                                const friend = await Friends.findOne({ userID: user.id });
+                                if (!friend) {
+                                        const newFriend = new Friends({
+                                                userID: user.id,
+                                                nameChat: user.name,
+                                        });
+                                        await newFriend.save();
+                                }
                                 return res.status(200).json(
                                         new BaseResponse(
                                                 1,
@@ -246,23 +251,21 @@ exports.loginByGoogle = async (req, res) => {
         try {
                 var user = await User.findOne({ email: req.body.email });
                 if (!user) {
-                        const newUser = new User({
+                        const newUser = await new User({
                                 email: req.body.email,
                                 name: req.body.name,
                                 isDarkMode: false,
                                 urlImage: req.body.urlImage
                         }).save();
-                        user = await User.findById((await newUser).id)
-                        // return res.status(400).json(
-                        //         new BaseResponse(
-                        //                 -1,
-                        //                 Date.now(),
-                        //                 [],
-                        //                 new Errors(
-                        //                         400,
-                        //                         "Wrong credentials",
-                        //                 )
-                        //         ));
+                        user = await User.findById(newUser.id);
+                }
+                const friend = await Friends.findOne({ userID: user.id });
+                if (!friend) {
+                        const newFriend = new Friends({
+                                userID: user.id,
+                                nameChat: user.name,
+                        });
+                        await newFriend.save();
                 }
                 var accessToken = jwt.sign({ id: user.id }, "mySecrectKey");
 

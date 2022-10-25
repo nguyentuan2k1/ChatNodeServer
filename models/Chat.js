@@ -16,11 +16,11 @@ const ChatSchema = new mongoose.Schema({
         timeLastMessage:{
                 type: String,
                 required: true, 
+        },
+        active: {
+                type: Boolean,
+                default: false, 
         }
-        // active: {
-        //         type: Boolean,
-        //         default: false, 
-        // }
 }, { timestamps: true }
 );
 

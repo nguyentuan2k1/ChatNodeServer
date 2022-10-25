@@ -7,6 +7,7 @@ const dotenv = require("dotenv");
 const port = 5000;
 const mongoose = require("mongoose");
 const authRouter = require("./routes/auth");
+const userRouter = require("./routes/user");
 dotenv.config();
 
 const { Server } = require("socket.io");
@@ -24,11 +25,12 @@ mongoose
 const io = new Server(server);
 
 io.on("connection", (socket) => {
-
+        
 });
 
 app.use("/api/auth", authRouter);
 
+app.use("/api/user", userRouter);
 
 app.get("/", (req, res) => {
         res.send("Its working !");
