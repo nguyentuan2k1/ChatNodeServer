@@ -27,6 +27,7 @@ exports.logout = async (req, res) => {
                 await Presence.updateOne({ userID: user.id }, {
                         $set: {
                                 presence: false,
+                                presenceTimeStamp: Date.now()
                         }
                 });
                 return res.status(200).json(
@@ -64,6 +65,7 @@ exports.loginByToken = async (req, res) => {
                         const updatePresence = await Presence.findOneAndUpdate({ userID: user.id }, {
                                 $set: {
                                         presence: true,
+                                        presenceTimeStamp: Date.now()
                                 }
                         });
                         const userPresence = await Presence.findById(updatePresence);
@@ -153,7 +155,8 @@ exports.register = async (req, res) => {
                 const user = await newUser.save();
                 const newPresence = new Presence({
                         userID: user.id,
-                        presence: false
+                        presence: false,
+                        presenceTimeStamp: Date.now()
                 });
                 await newPresence.save();
                 return res.status(200).json(new BaseResponse(
@@ -289,12 +292,14 @@ exports.loginByGoogle = async (req, res) => {
                         userPresence = await new Presence({
                                 userID: user.id,
                                 presence: true,
+                                presenceTimeStamp: Date.now()
                         }).save();
                 }
                 else {
                         await Presence.findOneAndUpdate({ userID: user.id }, {
                                 $set: {
                                         presence: true,
+                                        presenceTimeStamp: Date.now()
                                 }
                         });
                 }

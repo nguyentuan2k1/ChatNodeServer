@@ -10,6 +10,11 @@ const PresenceSchema = new mongoose.Schema({
                 type:Boolean,
                 required:true,
                 default:false,
+        },
+        presenceTimeStamp:{
+                type:Date,
+                required:true,
+                default:Date.now(),
         }
 }, { timeStamp: true }
 );
