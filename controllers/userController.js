@@ -7,6 +7,7 @@ const Chat = require('../models/Chat');
 const Friends = require('../models/Friends');
 const Users = require('../models/User');
 const UserAndPresence = require('../models/UserAndPresence');
+const ChatUserAndPresence = require('../models/ChatUserAndPresence');
 exports.findChatByKeyWord = async (req, res) => {
         try {
                 var listFriends;
@@ -36,9 +37,121 @@ exports.findChatByKeyWord = async (req, res) => {
                 return res.status(500).json([]);
         }
 }
+exports.getChats = async (req, res) => {
+        try {
+                console.log(req.body.userID);
+                const chats = await Chat.find({ users: req.body.userID });
+                console.log(chats.toString());
+                var listChatUserAndPresence = [];
+                for (let index = 0; index < chats.length; index++) {
+                        const element = chats[index];
+                        var findUserFriend;
+                        if (element.users.length == 2) {
+                                if (element.users[0] == req.body.userID && element.users[0] == req.body.userID) {
+                                        findUserFriend = req.body.userID;
+                                }
+                                else {
+                                        findUserFriend = element.users.find((element) => element != req.body.userID);
+                                }
+                        }
+                        const userFriend = await getUser(findUserFriend);
+                        const presence = await getPresenceByUserID(findUserFriend);
+                        listChatUserAndPresence.push(new ChatUserAndPresence(element, userFriend, presence));
+                }
+                return res.status(200).json(
+                        new BaseResponse(
+                                1,
+                                Date.now(),
+                                listChatUserAndPresence
+                                ,
+                                new Errors(
+                                        200,
+                                        listChatUserAndPresence.length == 0 ? "You need add some chat" : ""
+                                )
+                        )
+                );
+
+        } catch (error) {
+                return res.status(500).json(new BaseResponse(
+                        -1,
+                        Date.now(),
+                        []
+                        ,
+                        new Errors(
+                                500,
+                                error.toString()
+                        )
+                ));
+        }
+}
+
+exports.createAndJoinChat = async (req, res) => {
+        try {
+                var chat = await Chat.findOne({
+                        users: {
+                                $all: [req.body.listUser[1], req.body.listUser[0]]
+                        }
+                });
+                var ownerUserID = req.body.ownerUserID;
+                var findUserFriend;
+                if (!chat) {
+                        chat = await new Chat({
+                                users: req.body.listUser,
+                                active: false,
+                                lastMessage: "xin chào",
+                                timeLastMessage: Date.now()
+                        }).save();
+                }
+                if (req.body.listUser.length == 2) {
+                        if (req.body.listUser[0] == ownerUserID && req.body.listUser[1] == ownerUserID) {
+                                findUserFriend = ownerUserID;
+                        }
+                        else {
+                                req.body.listUser.find((element) => element != ownerUserID);
+                        }
+                }
+                var userFriend = await getUser(findUserFriend);
+                var presenceFriend = await getPresenceByUserID(findUserFriend);
+                const chatUserAndPresence = new ChatUserAndPresence(chat, userFriend, presenceFriend);
+                return res.status(200).json(
+                        new BaseResponse(
+                                1,
+                                Date.now(),
+                                [
+                                        chatUserAndPresence
+                                ],
+                                new Errors(
+                                        200,
+                                        ""
+                                )
+                        )
+                );
+        } catch (error) {
+                return res.status(500).json(
+                        new BaseResponse(
+                                -1,
+                                Date.now(),
+                                [],
+                                new Errors(
+                                        500,
+                                        error.toString(),
+                                )
+                        )
+                );
+        }
+}
 const getUser = async (userID) => {
-        return await User.findById(userID);
+        const findUser = await User.findById(userID);
+        if (!findUser) {
+                return null;
+        } else {
+                return findUser;
+        }
 }
 const getPresenceByUserID = async (userID) => {
-        return await Presence.findOne({ userID: userID });
+        const findPresence = await Presence.findOne({ userID: userID });
+        if (!findPresence) {
+                return null;
+        }
+        return findPresence;
 }

@@ -2,9 +2,14 @@ const mongoose = require('mongoose');
 
 const FriendsSchema = new mongoose.Schema({
         userID:{
-                type:String,
+                type:Array,
                 required: true,
                 unique:true,
+        },
+        typeFriend:{
+                type:String,
+                required: true,
+                default:"single"
         },
         nameChat:{
                 type:String,

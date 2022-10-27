@@ -9,12 +9,8 @@ const ChatSchema = new mongoose.Schema({
                 type: String,
                 required: true,
         },
-        typeLastMessage:{
-                type: String,
-                default: 'text',  
-        },
         timeLastMessage:{
-                type: String,
+                type: Date,
                 required: true, 
         },
         active: {
@@ -24,4 +20,4 @@ const ChatSchema = new mongoose.Schema({
 }, { timestamps: true }
 );
 
-module.exports = mongoose.model("rooms", ChatSchema);
+module.exports = mongoose.model("Chat", ChatSchema);

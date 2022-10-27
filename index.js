@@ -25,7 +25,10 @@ mongoose
 const io = new Server(server);
 
 io.on("connection", (socket) => {
-        
+        socket.on("hello", (data) => {
+                console.log(data);
+                socket.emit("helloclient", "hello");
+        })
 });
 
 app.use("/api/auth", authRouter);
