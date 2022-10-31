@@ -92,8 +92,7 @@ exports.createAndJoinChat = async (req, res) => {
                                 $all: [req.body.listUser[1], req.body.listUser[0]]
                         }
                 });
-                var ownerUserID = req.body.ownerUserID;
-                var findUserFriend;
+                var userIDFriend = req.body.userIDFriend;
                 if (!chat) {
                         chat = await new Chat({
                                 users: req.body.listUser,
@@ -102,16 +101,8 @@ exports.createAndJoinChat = async (req, res) => {
                                 timeLastMessage: Date.now()
                         }).save();
                 }
-                if (req.body.listUser.length == 2) {
-                        if (req.body.listUser[0] == ownerUserID && req.body.listUser[1] == ownerUserID) {
-                                findUserFriend = ownerUserID;
-                        }
-                        else {
-                                req.body.listUser.find((element) => element != ownerUserID);
-                        }
-                }
-                var userFriend = await getUser(findUserFriend);
-                var presenceFriend = await getPresenceByUserID(findUserFriend);
+                var userFriend = await getUser(userIDFriend);
+                var presenceFriend = await getPresenceByUserID(userIDFriend);
                 const chatUserAndPresence = new ChatUserAndPresence(chat, userFriend, presenceFriend);
                 return res.status(200).json(
                         new BaseResponse(

@@ -14,7 +14,7 @@ exports.sendMessage = async (req, res) => {
                 req.body.message,
                 req.body.urlImageMessage,
                 req.body.urlRecordMessage,
-                Date.now(),
+                new Date(Date.now()),
                 req.body.typeMessage,
                 req.body.messageStatus
         );

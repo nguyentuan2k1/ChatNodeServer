@@ -38,25 +38,23 @@ io.on("connection", (socket) => {
                 );
                 console.log(usersSocket);
         });
-        socket.on("JoinChat",(data)=>{
-                const getSocketByUserID = socketController.findUserByUserID(usersSocket,data["userID"]);
-                if(getSocketByUserID != null)
-                {
+        socket.on("JoinChat", (data) => {
+                const getSocketByUserID = socketController.findUserByUserID(usersSocket, data["userID"]);
+                if (getSocketByUserID != null) {
                         io.sockets.sockets.get(getSocketByUserID.socketID).join(data["chatID"]);
-                        console.log("join chat"+data["chatID"]);
+                        console.log("join chat" + data["chatID"]);
                 }
         });
-        socket.on("LeaveChat",(data)=>{
-                const getSocketByUserID = socketController.findUserByUserID(usersSocket,data["userID"]);
-                if(getSocketByUserID != null)
-                {
+        socket.on("LeaveChat", (data) => {
+                const getSocketByUserID = socketController.findUserByUserID(usersSocket, data["userID"]);
+                if (getSocketByUserID != null) {
                         io.sockets.sockets.get(getSocketByUserID.socketID).leave(data["chatID"]);
-                        console.log("leave chat "+data["chatID"]);
+                        console.log("leave chat " + data["chatID"]);
                 }
         });
-        socket.on("hello", (data) => {
-                console.log(data);
-                socket.emit("helloclient", "hello");
+        socket.on("clientSendMessage", async (data) => {
+                console.log(data["chatID"]);
+                io.in(data["chatID"]).emit("serverSendMessage", data);
         });
 });
 
