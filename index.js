@@ -3,8 +3,8 @@ const app = express();
 const http = require("http");
 const server = http.createServer(app);
 const dotenv = require("dotenv");
-const port = process.env.PORT;
-// const port = 5000;
+// const port = process.env.PORT;
+const port = 5000;
 const mongoose = require("mongoose");
 const authRouter = require("./routes/auth");
 const userRouter = require("./routes/user");
@@ -27,9 +27,9 @@ mongoose
 
 const io = new Server(server);
 
-const usersSocket = [];
+var usersSocket = [];
 io.on("connection", (socket) => {
-        socket.on("LoggedIn", (data) => {
+        socket.on("LoggedIn", async (data) => {
                 usersSocket.push(
                         new UserSocket
                                 (
@@ -53,9 +53,17 @@ io.on("connection", (socket) => {
                 }
         });
         socket.on("clientSendMessage", async (data) => {
-                console.log(data["chatID"]);
-                io.in(data["chatID"]).emit("serverSendMessage", data);
+                console.log(data);
+                io.to(data["chatID"]).emit("serverSendMessage", data);
         });
+        socket.on('disconnect', async (data) => {
+                const index = socketController.findIndexBySocketID(usersSocket, socket.id);
+                if (index >= 0) {
+                        usersSocket.splice(index, 1);
+                }
+                console.log(usersSocket.length);
+        });
+
 });
 
 app.use("/api/auth", authRouter);
