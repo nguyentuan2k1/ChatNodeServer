@@ -8,6 +8,9 @@ const port = 5000;
 const mongoose = require("mongoose");
 const authRouter = require("./routes/auth");
 const userRouter = require("./routes/user");
+const messageRouter = require("./routes/message");
+const UserSocket = require("./models/UserSocket");
+const socketController = require("./controllers/socketController");
 dotenv.config();
 
 const { Server } = require("socket.io");
@@ -24,16 +27,44 @@ mongoose
 
 const io = new Server(server);
 
+const usersSocket = [];
 io.on("connection", (socket) => {
+        socket.on("LoggedIn", (data) => {
+                usersSocket.push(
+                        new UserSocket
+                                (
+                                        socket.id, data["userID"]
+                                )
+                );
+                console.log(usersSocket);
+        });
+        socket.on("JoinChat",(data)=>{
+                const getSocketByUserID = socketController.findUserByUserID(usersSocket,data["userID"]);
+                if(getSocketByUserID != null)
+                {
+                        io.sockets.sockets.get(getSocketByUserID.socketID).join(data["chatID"]);
+                        console.log("join chat"+data["chatID"]);
+                }
+        });
+        socket.on("LeaveChat",(data)=>{
+                const getSocketByUserID = socketController.findUserByUserID(usersSocket,data["userID"]);
+                if(getSocketByUserID != null)
+                {
+                        io.sockets.sockets.get(getSocketByUserID.socketID).leave(data["chatID"]);
+                        console.log("leave chat "+data["chatID"]);
+                }
+        });
         socket.on("hello", (data) => {
                 console.log(data);
                 socket.emit("helloclient", "hello");
-        })
+        });
 });
 
 app.use("/api/auth", authRouter);
 
 app.use("/api/user", userRouter);
+
+app.use("/api/message", messageRouter);
 
 app.get("/", (req, res) => {
         res.send("Its working !");
