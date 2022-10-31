@@ -56,7 +56,7 @@ io.on("connection", (socket) => {
                 console.log(data);
                 io.to(data["chatID"]).emit("serverSendMessage", data);
         });
-        socket.on('disconnect', async (data) => {
+        socket.on('disconnect', async (data) => {       
                 const index = socketController.findIndexBySocketID(usersSocket, socket.id);
                 if (index >= 0) {
                         usersSocket.splice(index, 1);
