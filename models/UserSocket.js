@@ -1,7 +1,7 @@
 class UserSocket {
-        constructor(socketID, userID)
+        constructor(socket, userID)
         {
-                this.socketID = socketID;
+                this.socket = socket;
                 this.userID = userID;
         }
 }
