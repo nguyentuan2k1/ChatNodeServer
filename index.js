@@ -80,13 +80,6 @@ io.on("connection", (socket) => {
         });
         socket.on("clientSendMessage", async (data) => {
                 console.log(data);
-                // "chatID": chatID,
-                // "userID": message.userID,
-                // "message": message.message,
-                // "urlImageMessage": message.urlImageMessage,
-                // "urlRecordMessage": message.urlRecordMessage,
-                // "typeMessage": message.typeMessage,
-                // "messageStatus": message.messageStatus,
                 const message = new Message(
                         data["userID"],
                         data["message"],
@@ -98,7 +91,6 @@ io.on("connection", (socket) => {
                 );
                 const getChat = await chatController.updateMessageChat(data["chatID"], message);
                 if (getChat) {
-                        // io.to(data["chatID"]).emit("serverSendMessage", data);
                         io.to(getChat.id).emit("serverSendMessage", data);
                         const users = getChat.users;
                         console.log(users);
@@ -106,10 +98,12 @@ io.on("connection", (socket) => {
                                 const listSocket = usersID.get(users[0]).socket;
                                 for (let index = 0; index < listSocket.length; index++) {
                                         const element = listSocket[index];
+                                        console.log("newchat");
+                                        console.log(getChat);
                                         element.emit("receivedMessage", {
-                                                "newMessage": message.message,
-                                                "timeLastMessage": message.stampTimeMessage
-                                        });
+                                                "chat": getChat,
+                                        }
+                                        );
                                 }
                         }
                         else {
@@ -121,8 +115,7 @@ io.on("connection", (socket) => {
                                                 for (let j = 0; j < listSocket.length; j++) {
                                                         const element = listSocket[j];
                                                         element.emit("receivedMessage", {
-                                                                "newMessage": message.message,
-                                                                "timeLastMessage": message.stampTimeMessage
+                                                                "chat": getChat,
                                                         });
                                                 }
                                         }

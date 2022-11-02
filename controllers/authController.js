@@ -6,6 +6,7 @@ const BaseResponse = require('../models/BaseResponse');
 const Errors = require('../models/Errors');
 const Chat = require('../models/Chat');
 const Friends = require('../models/Friends');
+let options = {returnDocument: 'after'};
 exports.logout = async (req, res) => {
         try {
                 const user = await User.findById(req.body.userID);
@@ -34,8 +35,7 @@ exports.logout = async (req, res) => {
                         new BaseResponse(
                                 1,
                                 Date.now(),
-                                [
-                                ],
+                                [],
                                 new Errors(
                                         200,
                                         "Logout Successfully",
@@ -67,8 +67,8 @@ exports.loginByToken = async (req, res) => {
                                         presence: true,
                                         presenceTimeStamp: Date.now()
                                 }
-                        });
-                        const userPresence = await Presence.findById(updatePresence);
+                        },options);
+                        // const userPresence = await Presence.findById(updatePresence);
                         if (user != null) {
                                 const friend = await Friends.findOne({ userID: user.id });
                                 if (!friend) {
@@ -83,7 +83,7 @@ exports.loginByToken = async (req, res) => {
                                                 1,
                                                 Date.now(),
                                                 [
-                                                        { accessToken: checkAccessToken, user: user, userPresence: userPresence }
+                                                        { accessToken: checkAccessToken, user: user, userPresence: updatePresence }
                                                 ],
                                                 new Errors(
                                                         200,
@@ -204,7 +204,7 @@ exports.login = async (req, res) => {
 
                 var checkAccess = await AccessToken.findOne({
                         userID: user.id
-                })
+                });
                 if (checkAccess != null) {
                         accessToken = checkAccess.accessToken;
                 }
@@ -212,8 +212,7 @@ exports.login = async (req, res) => {
                         const access = new AccessToken({
                                 accessToken: accessToken,
                                 userID: user.id
-                        }
-                        );
+                        });
                         await access.save();
                         checkAccess = access;
                 }
@@ -221,14 +220,13 @@ exports.login = async (req, res) => {
                         $set: {
                                 presence: true,
                         }
-                });
-                const userPresence = await Presence.findById(updatePresence);
+                },options);
                 return res.status(200).json(
                         new BaseResponse(
                                 1,
                                 Date.now(),
                                 [
-                                        { accessToken: checkAccess, user: user, userPresence: userPresence }
+                                        { accessToken: checkAccess, user: user, userPresence: updatePresence }
                                 ],
                                 new Errors(
                                         200,
@@ -296,12 +294,12 @@ exports.loginByGoogle = async (req, res) => {
                         }).save();
                 }
                 else {
-                        await Presence.findOneAndUpdate({ userID: user.id }, {
+                        userPresence = await Presence.findOneAndUpdate({ userID: user.id }, {
                                 $set: {
                                         presence: true,
                                         presenceTimeStamp: Date.now()
                                 }
-                        });
+                        },options);
                 }
                 return res.status(200).json(
                         new BaseResponse(
@@ -330,39 +328,39 @@ exports.loginByGoogle = async (req, res) => {
 }
 
 
-exports.createRoom = async (req, res) => {
-        try {
-                const newChatRom = new Chat({
-                        users: req.body.users,
-                        lastMessage: req.body.message,
-                        typeLastMessage: req.body.type,
-                        timeLastMessage: req.body.time,
-                });
-                await newChatRom.save();
-                return res.status(200).json(new BaseResponse(
-                        1,
-                        Date.now(),
-                        [],
-                        new Errors(
-                                200,
-                                "Create chat room Successfully!",
-                        )
-                ));
-        } catch (error) {
-                console.log(error.toString());
-                return res.status(500).json(new BaseResponse(
-                        -1,
-                        Date.now(),
-                        []
-                        ,
-                        new Errors(
-                                500,
-                                error.toString(),
-                        )
+// exports.createRoom = async (req, res) => {
+//         try {
+//                 const newChatRom = new Chat({
+//                         users: req.body.users,
+//                         lastMessage: req.body.message,
+//                         typeLastMessage: req.body.type,
+//                         timeLastMessage: req.body.time,
+//                 });
+//                 await newChatRom.save();
+//                 return res.status(200).json(new BaseResponse(
+//                         1,
+//                         Date.now(),
+//                         [],
+//                         new Errors(
+//                                 200,
+//                                 "Create chat room Successfully!",
+//                         )
+//                 ));
+//         } catch (error) {
+//                 console.log(error.toString());
+//                 return res.status(500).json(new BaseResponse(
+//                         -1,
+//                         Date.now(),
+//                         []
+//                         ,
+//                         new Errors(
+//                                 500,
+//                                 error.toString(),
+//                         )
 
-                ));
-        }
-}
+//                 ));
+//         }
+// }
 
 exports.getPresence = async (req, res) => {
         try {
