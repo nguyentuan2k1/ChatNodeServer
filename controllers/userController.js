@@ -47,7 +47,7 @@ exports.getChats = async (req, res) => {
                         const element = chats[index];
                         var findUserFriend;
                         if (element.users.length == 2) {
-                                if (element.users[0] == req.body.userID && element.users[0] == req.body.userID) {
+                                if (element.users[0] == req.body.userID && element.users[1] == req.body.userID) {
                                         findUserFriend = req.body.userID;
                                 }
                                 else {

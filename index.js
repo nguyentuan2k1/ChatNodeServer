@@ -3,8 +3,8 @@ const app = express();
 const http = require("http");
 const server = http.createServer(app);
 const dotenv = require("dotenv");
-const port = process.env.PORT;
-// const port = 5000;
+// const port = process.env.PORT;
+const port = 5000;
 const mongoose = require("mongoose");
 const authRouter = require("./routes/auth");
 const userRouter = require("./routes/user");
@@ -62,6 +62,8 @@ io.on("connection", (socket) => {
                 console.log(usersSocketID);
         });
         socket.on("JoinChat", (data) => {
+                console.log("check socket user");
+                console.log(usersSocketID.get(socket.id).socket);
                 usersSocketID.get(socket.id).socket.join(data["chatID"]);
                 console.log("join chat" + data["chatID"]);
         });
@@ -71,7 +73,7 @@ io.on("connection", (socket) => {
         });
         socket.on("clientSendMessage", async (data) => {
                 console.log(data);
-                socket.to(data["chatID"]).emit("serverSendMessage", data);
+                io.to(data["chatID"]).emit("serverSendMessage", data);
                 const users = data["usersID"];
                 console.log(users);
                 if (users[0] == users[1]) {
@@ -87,13 +89,17 @@ io.on("connection", (socket) => {
                 else {
                         for (let index = 0; index < users.length; index++) {
                                 const element = users[index];
-                                const listSocket = usersID.get(element).socket;
-                                for (let j = 0; j < listSocket.length; j++) {
-                                        const element = listSocket[j];
-                                        element.emit("receivedMessage", {
-                                                "newMessage": data["message"],
-                                                "timeLastMessage": new Date(Date.now())
-                                        });
+                                console.log(index + " " + element);
+                                if(usersID.get(element))
+                                {
+                                        const listSocket = usersID.get(element).socket;
+                                        for (let j = 0; j < listSocket.length; j++) {
+                                                const element = listSocket[j];
+                                                element.emit("receivedMessage", {
+                                                        "newMessage": data["message"],
+                                                        "timeLastMessage": new Date(Date.now())
+                                                });
+                                        }
                                 }
                         }
                 }
