@@ -3,13 +3,15 @@ const app = express();
 const http = require("http");
 const server = http.createServer(app);
 const dotenv = require("dotenv");
-const port = process.env.PORT;
-// const port = 5000;
+// const port = process.env.PORT;
+const port = 5000;
 const mongoose = require("mongoose");
 const authRouter = require("./routes/auth");
 const userRouter = require("./routes/user");
 const messageRouter = require("./routes/message");
 const UserSocket = require("./models/UserSocket");
+const Message = require("./models/Message");
+const chatController = require("./controllers/chatController");
 const socketController = require("./controllers/socketController");
 dotenv.config();
 
@@ -31,17 +33,22 @@ var usersSocketID = new Map();
 var usersID = new Map();
 io.on("connection", (socket) => {
         socket.on("LoggedIn", async (data) => {
-                usersSocketID.set(socket.id,
-                        new UserSocket
-                                (
-                                        socket, data["userID"]
-                                )
-                );
+                if (!usersSocketID.get(socket.id)) {
+                        usersSocketID.set(socket.id,
+                                new UserSocket
+                                        (
+                                                socket, data["userID"]
+                                        )
+                        );
+                }
                 if (usersID.get(data["userID"])) {
                         const userID = usersID.get(data["userID"]);
                         console.log("print userID");
                         console.log(userID);
-                        userID.socket.push(socket);
+                        const checkUserIDSocket = userID.socket.find(element => element.id == socket.id);
+                        if (!checkUserIDSocket) {
+                                userID.socket.push(socket);
+                        }
                         usersID.delete(data["userID"]);
                         usersID.set(data["userID"], userID);
                         console.log("look for check ");
@@ -73,37 +80,55 @@ io.on("connection", (socket) => {
         });
         socket.on("clientSendMessage", async (data) => {
                 console.log(data);
-                io.to(data["chatID"]).emit("serverSendMessage", data);
-                const users = data["usersID"];
-                console.log(users);
-                if (users[0] == users[1]) {
-                        const listSocket = usersID.get(users[0]).socket;
-                        for (let index = 0; index < listSocket.length; index++) {
-                                const element = listSocket[index];
-                                element.emit("receivedMessage", {
-                                        "newMessage": data["message"],
-                                        "timeLastMessage": new Date(Date.now())
-                                });
+                // "chatID": chatID,
+                // "userID": message.userID,
+                // "message": message.message,
+                // "urlImageMessage": message.urlImageMessage,
+                // "urlRecordMessage": message.urlRecordMessage,
+                // "typeMessage": message.typeMessage,
+                // "messageStatus": message.messageStatus,
+                const message = new Message(
+                        data["userID"],
+                        data["message"],
+                        data["urlImageMessage"],
+                        data["urlRecordMessage"],
+                        new Date(Date.now()),
+                        data["typeMessage"],
+                        data["messageStatus"],
+                );
+                const getChat = await chatController.updateMessageChat(data["chatID"], message);
+                if (getChat) {
+                        // io.to(data["chatID"]).emit("serverSendMessage", data);
+                        io.to(getChat.id).emit("serverSendMessage", data);
+                        const users = getChat.users;
+                        console.log(users);
+                        if (users[0] == users[1]) {
+                                const listSocket = usersID.get(users[0]).socket;
+                                for (let index = 0; index < listSocket.length; index++) {
+                                        const element = listSocket[index];
+                                        element.emit("receivedMessage", {
+                                                "newMessage": message.message,
+                                                "timeLastMessage": message.stampTimeMessage
+                                        });
+                                }
                         }
-                }
-                else {
-                        for (let index = 0; index < users.length; index++) {
-                                const element = users[index];
-                                console.log(index + " " + element);
-                                if(usersID.get(element))
-                                {
-                                        const listSocket = usersID.get(element).socket;
-                                        for (let j = 0; j < listSocket.length; j++) {
-                                                const element = listSocket[j];
-                                                element.emit("receivedMessage", {
-                                                        "newMessage": data["message"],
-                                                        "timeLastMessage": new Date(Date.now())
-                                                });
+                        else {
+                                for (let index = 0; index < users.length; index++) {
+                                        const element = users[index];
+                                        console.log(index + " " + element);
+                                        if (usersID.get(element)) {
+                                                const listSocket = usersID.get(element).socket;
+                                                for (let j = 0; j < listSocket.length; j++) {
+                                                        const element = listSocket[j];
+                                                        element.emit("receivedMessage", {
+                                                                "newMessage": message.message,
+                                                                "timeLastMessage": message.stampTimeMessage
+                                                        });
+                                                }
                                         }
                                 }
                         }
                 }
-
         });
         socket.on('disconnect', async (data) => {
                 const userSocket = usersSocketID.get(socket.id);
