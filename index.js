@@ -3,8 +3,8 @@ const app = express();
 const http = require("http");
 const server = http.createServer(app);
 const dotenv = require("dotenv");
-const port = process.env.PORT;
-// const port = 5000;
+// const port = process.env.PORT;
+const port = 5000;
 const mongoose = require("mongoose");
 const authRouter = require("./routes/auth");
 const userRouter = require("./routes/user");
@@ -16,6 +16,7 @@ const socketController = require("./controllers/socketController");
 dotenv.config();
 
 const { Server } = require("socket.io");
+const Presence = require("./models/Presence");
 app.use(express.json());
 
 mongoose
@@ -33,6 +34,9 @@ var usersSocketID = new Map();
 var usersID = new Map();
 io.on("connection", (socket) => {
         socket.on("LoggedIn", async (data) => {
+                const presence = await Presence.findOne(
+                        { userID: data["userID"] }
+                );
                 if (!usersSocketID.get(socket.id)) {
                         usersSocketID.set(socket.id,
                                 new UserSocket
@@ -63,6 +67,12 @@ io.on("connection", (socket) => {
                                         )
                         );
                 }
+                if (presence) {
+                        socket.broadcast.emit("userOnline", {
+                                "presence": presence
+                        });
+
+                }
                 console.log("userID");
                 console.log(usersID);
                 console.log("userSocketID");
@@ -70,13 +80,18 @@ io.on("connection", (socket) => {
         });
         socket.on("JoinChat", (data) => {
                 console.log("check socket user");
-                console.log(usersSocketID.get(socket.id).socket);
-                usersSocketID.get(socket.id).socket.join(data["chatID"]);
-                console.log("join chat" + data["chatID"]);
+                if (usersSocketID.get(socket.id)) {
+                        console.log(usersSocketID.get(socket.id).socket);
+                        usersSocketID.get(socket.id).socket.join(data["chatID"]);
+                        console.log("join chat" + data["chatID"]);
+                }
         });
         socket.on("LeaveChat", (data) => {
-                usersSocketID.get(socket.id).socket.leave(data["chatID"]);
-                console.log("leave chat " + data["chatID"]);
+                if (usersSocketID.get(socket.id)) {
+                        usersSocketID.get(socket.id).socket.leave(data["chatID"]);
+                        console.log("leave chat " + data["chatID"]);
+
+                }
         });
         socket.on("clientSendMessage", async (data) => {
                 console.log(data);
@@ -126,6 +141,18 @@ io.on("connection", (socket) => {
         socket.on('disconnect', async (data) => {
                 const userSocket = usersSocketID.get(socket.id);
                 if (userSocket) {
+                        let options = { returnDocument: 'after' };
+                        const presence = await Presence.findOneAndUpdate(
+                                { userID: userSocket.userID },
+                                {
+                                        $set:
+                                        {
+                                                presence: false,
+                                                presenceTimeStamp: Date.now()
+                                        }
+                                },
+                                options
+                        );
                         const userID = usersID.get(userSocket.userID);
                         console.log("print userID");
                         console.log(userID);
@@ -138,6 +165,11 @@ io.on("connection", (socket) => {
                                 );
                         }
                         else {
+                                if (presence) {
+                                        io.emit("userDisconnected", {
+                                                "presence": presence
+                                        });
+                                }
                                 usersID.delete(userSocket.userID);
                         }
                         usersSocketID.delete(socket.id);

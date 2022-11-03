@@ -89,13 +89,13 @@ exports.createAndJoinChat = async (req, res) => {
         try {
                 var chat = await Chat.findOne({
                         users: {
-                                $all: [req.body.listUser[1], req.body.listUser[0]]
+                                $all: [req.body.userID, req.body.userIDFriend]
                         }
                 });
                 var userIDFriend = req.body.userIDFriend;
                 if (!chat) {
                         chat = await new Chat({
-                                users: req.body.listUser,
+                                users: [req.body.userID, req.body.userIDFriend],
                                 active: false,
                                 lastMessage: "xin chào",
                                 timeLastMessage: Date.now()
