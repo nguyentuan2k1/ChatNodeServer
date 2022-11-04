@@ -17,6 +17,7 @@ dotenv.config();
 const fcmService = require("./fcm/fcmService");
 const { Server } = require("socket.io");
 const Presence = require("./models/Presence");
+const fcmRouter = require("./routes/fcm");
 app.use(express.json());
 
 mongoose
@@ -106,6 +107,16 @@ io.on("connection", (socket) => {
                 );
                 const getChat = await chatController.updateMessageChat(data["chatID"], message);
                 if (getChat) {
+                        // fcmService.sendNotification(
+                        //         data["deviceToken"],
+                        //         {
+                        //                 'priority': 'high',
+                        //         }
+                        //         ,
+                        //         {
+                        //                 "message": getChat.lastMessage
+                        //         }
+                        // );
                         io.to(getChat.id).emit("serverSendMessage", data);
                         const users = getChat.users;
                         console.log(users);
@@ -183,7 +194,7 @@ io.on("connection", (socket) => {
 app.use("/api/auth", authRouter);
 
 app.use("/api/user", userRouter);
-
+app.use("/api/notification", fcmRouter);
 // app.use("/api/message", messageRouter);
 
 app.get("/", (req, res) => {
