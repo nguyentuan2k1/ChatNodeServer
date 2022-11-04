@@ -18,6 +18,10 @@ const UserSchema = new mongoose.Schema({
                 type: String,
                 default: "",
         },
+        deviceToken: {
+                type: String,
+                default: "",
+        }
 }, { timeStamp: true }
 );
 module.exports = mongoose.model("User", UserSchema);

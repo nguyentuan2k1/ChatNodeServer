@@ -8,7 +8,8 @@ exports.updateMessageChat = async (chatID, message) => {
                 {
                         $set: {
                                 lastMessage: message.message,
-                                timeLastMessage: message.stampTimeMessage
+                                timeLastMessage: message.stampTimeMessage,
+                                userIDLastMessage: message.userID
                         }, $push: {
                                 messages: message
                         }

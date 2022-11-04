@@ -9,6 +9,11 @@ const ChatSchema = new mongoose.Schema({
                 type: String,
                 required: true,
         },
+        userIDLastMessage:{
+                type:String,
+                required:true,
+                default: ""
+        },
         timeLastMessage:{
                 type: Date,
                 required: true, 

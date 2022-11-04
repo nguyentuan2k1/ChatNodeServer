@@ -14,7 +14,7 @@ const Message = require("./models/Message");
 const chatController = require("./controllers/chatController");
 const socketController = require("./controllers/socketController");
 dotenv.config();
-
+const fcmService = require("./fcm/fcmService");
 const { Server } = require("socket.io");
 const Presence = require("./models/Presence");
 app.use(express.json());

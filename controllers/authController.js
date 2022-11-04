@@ -6,7 +6,7 @@ const BaseResponse = require('../models/BaseResponse');
 const Errors = require('../models/Errors');
 const Chat = require('../models/Chat');
 const Friends = require('../models/Friends');
-let options = {returnDocument: 'after'};
+let options = { returnDocument: 'after' };
 exports.logout = async (req, res) => {
         try {
                 const user = await User.findById(req.body.userID);
@@ -61,13 +61,17 @@ exports.loginByToken = async (req, res) => {
                 const str = authorization.split(" ")[1];
                 const checkAccessToken = await AccessToken.findOne({ accessToken: str });
                 if (checkAccessToken != null) {
-                        const user = await User.findById(checkAccessToken.userID);
+                        const user = await User.findByIdAndUpdate(checkAccessToken.userID, {
+                                $set: {
+                                        deviceToken: req.body.deviceToken
+                                },
+                        }, options);
                         const updatePresence = await Presence.findOneAndUpdate({ userID: user.id }, {
                                 $set: {
                                         presence: true,
                                         presenceTimeStamp: Date.now()
                                 }
-                        },options);
+                        }, options);
                         // const userPresence = await Presence.findById(updatePresence);
                         if (user != null) {
                                 const friend = await Friends.findOne({ userID: user.id });
@@ -220,7 +224,7 @@ exports.login = async (req, res) => {
                         $set: {
                                 presence: true,
                         }
-                },options);
+                }, options);
                 return res.status(200).json(
                         new BaseResponse(
                                 1,
@@ -249,8 +253,15 @@ exports.login = async (req, res) => {
 
 
 exports.loginByGoogle = async (req, res) => {
+        console.log(req.body.deviceToken);
         try {
-                var user = await User.findOne({ email: req.body.email });
+                var user = await User.findOneAndUpdate({ email: req.body.email },
+                        {
+                                $set: {
+                                        deviceToken: req.body.deviceToken
+                                }
+                        }, options
+                );
                 if (!user) {
                         const newUser = await new User({
                                 email: req.body.email,
@@ -299,7 +310,7 @@ exports.loginByGoogle = async (req, res) => {
                                         presence: true,
                                         presenceTimeStamp: Date.now()
                                 }
-                        },options);
+                        }, options);
                 }
                 return res.status(200).json(
                         new BaseResponse(
