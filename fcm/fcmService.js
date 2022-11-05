@@ -6,12 +6,6 @@ admin.initializeApp({
 const messaging = admin.messaging();
 
 exports.sendNotification = async (to, notification,data) => {
-        // var payload = {
-        //         to: to,
-        //         notification: notification,
-        //         data: data,
-        //         topic: 'topic'
-        // };
         let message = {
                 notification: notification,
                 token: to,
@@ -21,7 +15,7 @@ exports.sendNotification = async (to, notification,data) => {
                 const response = await messaging.send(message);
                 if (response) {
                         console.log("send notification success");
-                        console.log(response.toString());
+                        // console.log(response.toString());
                 }
         } catch (error) {
                 console.log("send notification failed");
