@@ -62,8 +62,7 @@ exports.getChats = async (req, res) => {
                         new BaseResponse(
                                 1,
                                 Date.now(),
-                                listChatUserAndPresence
-                                ,
+                                listChatUserAndPresence,
                                 new Errors(
                                         200,
                                         listChatUserAndPresence.length == 0 ? "You need add some chat" : ""
@@ -88,18 +87,25 @@ exports.getChats = async (req, res) => {
 exports.createAndJoinChat = async (req, res) => {
         try {
                 var chat = await Chat.findOne({
-                        users: {
-                                $all: [req.body.userID, req.body.userIDFriend]
-                        }
+                        users: [req.body.userID, req.body.userIDFriend]
+
                 });
                 var userIDFriend = req.body.userIDFriend;
                 if (!chat) {
-                        chat = await new Chat({
-                                users: [req.body.userID, req.body.userIDFriend],
-                                active: false,
-                                lastMessage: "xin chào",
-                                timeLastMessage: Date.now()
-                        }).save();
+                        chat = await Chat.findOne({
+                                users: [req.body.userIDFriend, req.body.userID]
+        
+                        });
+                        if(!chat)
+                        {
+                                chat = await new Chat({
+                                        users: [req.body.userID, req.body.userIDFriend],
+                                        active: false,
+                                        lastMessage: "xin chào",
+                                        userIDLastMessage: req.body.userID,
+                                        timeLastMessage: Date.now()
+                                }).save();
+                        }
                 }
                 var userFriend = await getUser(userIDFriend);
                 var presenceFriend = await getPresenceByUserID(userIDFriend);
@@ -118,6 +124,8 @@ exports.createAndJoinChat = async (req, res) => {
                         )
                 );
         } catch (error) {
+                console.log(req.body.userID);
+                console.log(error.toString());
                 return res.status(500).json(
                         new BaseResponse(
                                 -1,

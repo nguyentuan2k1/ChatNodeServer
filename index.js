@@ -87,6 +87,40 @@ io.on("connection", (socket) => {
                         console.log("join chat" + data["chatID"]);
                 }
         });
+        socket.on("clientSendNewChat", (data) => {
+                console.log("check users");
+                console.log(data["usersChat"].toString());
+                console.log("check new chat");
+                console.log(data["chatUserAndPresence"]);
+                const usersChat = data["usersChat"];
+                if (usersChat[0] == usersChat[1]) {
+                        if (usersID.get(data["userIDFriend"])) {
+                                const userID = usersID.get(data["userID"]);
+                                const listSocket = userID.socket;
+                                for (let index = 0; index < listSocket.length; index++) {
+                                        const element = listSocket[index];
+                                        element.emit("receivedNewChat", {
+                                                "chatUserAndPresence": data["chatUserAndPresence"]
+                                        });
+                                }
+                        }
+                }
+                else {
+                        for (let index = 0; index < usersChat.length; index++) {
+                                const element = usersChat[index];
+                                if (usersID.get(element)) {
+                                        const userID = usersID.get(element);
+                                        const listSocket = userID.socket;
+                                        for (let i = 0; i < listSocket.length; i++) {
+                                                const element = listSocket[i];
+                                                element.emit("receivedNewChat", {
+                                                        "chatUserAndPresence": data["chatUserAndPresence"]
+                                                });
+                                        }
+                                }
+                        }
+                }
+        });
         socket.on("LeaveChat", (data) => {
                 if (usersSocketID.get(socket.id)) {
                         usersSocketID.get(socket.id).socket.leave(data["chatID"]);
@@ -107,16 +141,16 @@ io.on("connection", (socket) => {
                 );
                 const getChat = await chatController.updateMessageChat(data["chatID"], message);
                 if (getChat) {
-                        // fcmService.sendNotification(
-                        //         data["deviceToken"],
-                        //         {
-                        //                 'priority': 'high',
-                        //         }
-                        //         ,
-                        //         {
-                        //                 "message": getChat.lastMessage
-                        //         }
-                        // );
+                        fcmService.sendNotification(
+                                data["deviceToken"],
+                                {
+                                        'title': data["nameSender"],
+                                        'body': getChat.lastMessage,
+                                },
+                                {
+                                        "urlImageSender": data["urlImageSender"]
+                                }
+                        );
                         io.to(getChat.id).emit("serverSendMessage", data);
                         const users = getChat.users;
                         console.log(users);

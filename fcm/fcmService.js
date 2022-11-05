@@ -1,23 +1,31 @@
-var FCM = require('fcm-node');
+var admin = require("firebase-admin");
+var serviceAccount = require("../firebase-adminSDK.json");
+admin.initializeApp({
+        credential: admin.credential.cert(serviceAccount),
+});
+const messaging = admin.messaging();
 
-var fcm = new FCM(process.env.KeyFCM);
-
-exports.sendNotification = (to,notification,data) =>{
-        var message = {
-                to: to,
-                notification:notification,
+exports.sendNotification = async (to, notification,data) => {
+        // var payload = {
+        //         to: to,
+        //         notification: notification,
+        //         data: data,
+        //         topic: 'topic'
+        // };
+        let message = {
+                notification: notification,
+                token: to,
                 data:data
         };
-        fcm.send(message,function(err,response)
-        {
-             if(err)
-             {
-                console.log("something has gone wrong" + err);
-                console.log("Response:" + response);
-             }
-             else
-             {
-                console.log("Successfully send with response: ", response)
-             }
-        });
+        try {
+                const response = await messaging.send(message);
+                if (response) {
+                        console.log("send notification success");
+                        console.log(response.toString());
+                }
+        } catch (error) {
+                console.log("send notification failed");
+                console.log(error.toString());
+        }
+
 }
