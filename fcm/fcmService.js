@@ -5,11 +5,14 @@ admin.initializeApp({
 });
 const messaging = admin.messaging();
 
-exports.sendNotification = async (to, notification,data) => {
+exports.sendNotification = async (to, notification, data) => {
         let message = {
                 notification: notification,
                 token: to,
-                data:data
+                data: data,
+                "android": {
+                        "priority": "high"
+                }
         };
         try {
                 const response = await messaging.send(message);

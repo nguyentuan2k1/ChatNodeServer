@@ -165,7 +165,8 @@ io.on("connection", (socket) => {
                                         'body': getChat.lastMessage,
                                 },
                                 {
-                                        "urlImageSender": data["urlImageSender"]
+                                        "urlImageSender": data["urlImageSender"],
+                                        "message": getChat.lastMessage
                                 }
                         );
                         io.to(getChat.id).emit("serverSendMessage", message);
