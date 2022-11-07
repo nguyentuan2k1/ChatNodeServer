@@ -3,8 +3,8 @@ const app = express();
 const http = require("http");
 const server = http.createServer(app);
 const dotenv = require("dotenv");
-const port = process.env.PORT;
-// const port = 5000;
+// const port = process.env.PORT;
+const port = 5000;
 const mongoose = require("mongoose");
 const authRouter = require("./routes/auth");
 const userRouter = require("./routes/user");
@@ -156,8 +156,6 @@ io.on("connection", (socket) => {
                         data["typeMessage"],
                         data["messageStatus"],
                 );
-                console.log("senderID");
-                console.log(data["userIDSender"]);
                 const getChat = await chatController.updateMessageChat(data["chatID"], message);
                 if (getChat) {
                         console.log("check device Token");
@@ -167,13 +165,16 @@ io.on("connection", (socket) => {
                                 {
                                         'title': data["nameSender"],
                                         'body': getChat.lastMessage,
+                                        'imageUrl': data["urlImageSender"]
                                 },
                                 {
-                                        "urlImageSender": data["urlImageSender"],
                                         "message": getChat.lastMessage,
                                         "chatID": getChat.id,
                                         "userIDSender": data["userIDSender"]
-                                }
+                                },
+                                {
+                                        "priority": "high",
+                                },
                         );
                         io.to(getChat.id).emit("serverSendMessage", message);
                         const users = getChat.users;
