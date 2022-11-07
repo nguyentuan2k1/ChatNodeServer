@@ -165,6 +165,8 @@ io.on("connection", (socket) => {
                                 {
                                         'title': data["nameSender"],
                                         'body': getChat.lastMessage,
+                                        "mutableContent":"true",
+                                        "contentAvailable":"true",
                                         'imageUrl': data["urlImageSender"]
                                 },
                                 {
