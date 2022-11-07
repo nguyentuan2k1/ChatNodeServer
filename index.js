@@ -3,8 +3,8 @@ const app = express();
 const http = require("http");
 const server = http.createServer(app);
 const dotenv = require("dotenv");
-// const port = process.env.PORT;
-const port = 5000;
+const port = process.env.PORT;
+// const port = 5000;
 const mongoose = require("mongoose");
 const authRouter = require("./routes/auth");
 const userRouter = require("./routes/user");
@@ -17,8 +17,8 @@ const fcmService = require("./fcm/fcmService");
 const { Server } = require("socket.io");
 const Presence = require("./models/Presence");
 const User = require("./models/User");
-const fcmRouter = require("./routes/fcm");
 const utilsDateTime = require("./utils/utilsDateTime");
+const ChatUserAndPresence = require("./models/ChatUserAndPresence");
 dotenv.config();
 app.use(express.json());
 
@@ -156,8 +156,12 @@ io.on("connection", (socket) => {
                         data["typeMessage"],
                         data["messageStatus"],
                 );
+                console.log("senderID");
+                console.log(data["userIDSender"]);
                 const getChat = await chatController.updateMessageChat(data["chatID"], message);
                 if (getChat) {
+                        console.log("check device Token");
+                        console.log(data["deviceToken"]);
                         fcmService.sendNotification(
                                 data["deviceToken"],
                                 {
@@ -166,7 +170,9 @@ io.on("connection", (socket) => {
                                 },
                                 {
                                         "urlImageSender": data["urlImageSender"],
-                                        "message": getChat.lastMessage
+                                        "message": getChat.lastMessage,
+                                        "chatID": getChat.id,
+                                        "userIDSender": data["userIDSender"]
                                 }
                         );
                         io.to(getChat.id).emit("serverSendMessage", message);
@@ -176,8 +182,8 @@ io.on("connection", (socket) => {
                                 const listSocket = usersID.get(users[0]).socket;
                                 for (let index = 0; index < listSocket.length; index++) {
                                         const element = listSocket[index];
-                                        console.log("newchat");
-                                        console.log(getChat);
+                                        // console.log("newchat");
+                                        // console.log(getChat);
                                         element.emit("receivedMessage", {
                                                 "chat": getChat,
                                         }
@@ -246,7 +252,6 @@ io.on("connection", (socket) => {
 app.use("/api/auth", authRouter);
 
 app.use("/api/user", userRouter);
-app.use("/api/notification", fcmRouter);
 // app.use("/api/message", messageRouter);
 
 app.get("/", (req, res) => {
