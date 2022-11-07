@@ -38,7 +38,7 @@ var usersID = new Map();
 io.on("connection", (socket) => {
         socket.on("LoggedIn", async (data) => {
                 const presence = await Presence.findOne(
-                        { userID: data["userID"] }
+                        { userID: data["userID"] ,presence : true, presenceTimeStamp: Date.now()}
                 );
                 if (!usersSocketID.get(socket.id)) {
                         usersSocketID.set(socket.id,
@@ -165,8 +165,6 @@ io.on("connection", (socket) => {
                                 {
                                         'title': data["nameSender"],
                                         'body': getChat.lastMessage,
-                                        "mutableContent":"true",
-                                        "contentAvailable":"true",
                                         'imageUrl': data["urlImageSender"]
                                 },
                                 {
@@ -189,7 +187,7 @@ io.on("connection", (socket) => {
                                         // console.log(getChat);
                                         element.emit("receivedMessage", {
                                                 "chat": getChat,
-                                        }
+                                        }               
                                         );
                                 }
                         }
