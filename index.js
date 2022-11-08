@@ -3,12 +3,11 @@ const app = express();
 const http = require("http");
 const server = http.createServer(app);
 const dotenv = require("dotenv");
-const port = process.env.PORT;
-// const port = 5000;
+// const port = process.env.PORT;
+const port = 5000;
 const mongoose = require("mongoose");
 const authRouter = require("./routes/auth");
 const userRouter = require("./routes/user");
-// const messageRouter = require("./routes/message");
 const UserSocket = require("./models/UserSocket");
 const Message = require("./models/Message");
 const chatController = require("./controllers/chatController");
@@ -17,8 +16,6 @@ const fcmService = require("./fcm/fcmService");
 const { Server } = require("socket.io");
 const Presence = require("./models/Presence");
 const User = require("./models/User");
-const utilsDateTime = require("./utils/utilsDateTime");
-const ChatUserAndPresence = require("./models/ChatUserAndPresence");
 dotenv.config();
 app.use(express.json());
 
@@ -38,7 +35,7 @@ var usersID = new Map();
 io.on("connection", (socket) => {
         socket.on("LoggedIn", async (data) => {
                 const presence = await Presence.findOne(
-                        { userID: data["userID"] ,presence : true, presenceTimeStamp: Date.now()}
+                        { userID: data["userID"], presence: true, presenceTimeStamp: Date.now() }
                 );
                 if (!usersSocketID.get(socket.id)) {
                         usersSocketID.set(socket.id,
@@ -186,7 +183,7 @@ io.on("connection", (socket) => {
                                         // console.log(getChat);
                                         element.emit("receivedMessage", {
                                                 "chat": getChat,
-                                        }               
+                                        }
                                         );
                                 }
                         }
