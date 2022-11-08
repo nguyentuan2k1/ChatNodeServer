@@ -3,8 +3,8 @@ const app = express();
 const http = require("http");
 const server = http.createServer(app);
 const dotenv = require("dotenv");
-// const port = process.env.PORT;
-const port = 5000;
+const port = process.env.PORT;
+// const port = 5000;
 const mongoose = require("mongoose");
 const authRouter = require("./routes/auth");
 const userRouter = require("./routes/user");
@@ -168,7 +168,6 @@ io.on("connection", (socket) => {
                                         'imageUrl': data["urlImageSender"]
                                 },
                                 {
-                                        "message": getChat.lastMessage,
                                         "chatID": getChat.id,
                                         "userIDSender": data["userIDSender"]
                                 },
