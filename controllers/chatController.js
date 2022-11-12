@@ -13,8 +13,6 @@ exports.updateMessageChat = async (chatID, message) => {
                                 lastMessage: message.message,
                                 timeLastMessage: message.stampTimeMessage,
                                 userIDLastMessage: message.userID
-                        }, $push: {
-                                messages: message
                         }
                 }, options);
 }
