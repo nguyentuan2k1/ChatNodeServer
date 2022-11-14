@@ -1,6 +1,4 @@
 const Chat = require("../models/Chat");
-const BaseResponse = require('../models/BaseResponse');
-const Errors = require('../models/Errors');
 exports.getChat = async (chatID) => {
         return await Chat.findById(chatID);
 }

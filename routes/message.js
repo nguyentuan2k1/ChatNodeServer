@@ -5,4 +5,6 @@ router.post("/insertMessages", chatMessagesController.insertManyChatMessage);
 
 router.post("/getMessages", chatMessagesController.getMessagesByChatID);
 
+router.post("/updateStatusMessage", chatMessagesController.updateStatusMessageHttp);
+
 module.exports = router;

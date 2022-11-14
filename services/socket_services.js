@@ -3,8 +3,8 @@ const chatController = require("../controllers/chatController");
 const fcmService = require("../fcm/fcmService");
 const Presence = require("../models/Presence");
 const ChatMessage = require("../models/ChatMessages");
+const chatMessagesController = require("../controllers/chatMessagesController");
 class SocketService {
-
         connection(socket) {
                 socket.on("LoggedIn", async (data) => {
                         const presence = await Presence.findOneAndUpdate(
@@ -74,7 +74,12 @@ class SocketService {
                                         "chatID": data["chatID"]
                                 });
                 });
-
+                socket.on("updateSentMessages", async (data) =>{
+                        const messages = await chatMessagesController.updateStatusSentMessage(data["chatID"],data["userID"]);
+                        _io.to(data["chatID"]).emit("receiveMessagesUpdated",{
+                                "ListIDMessage":messages
+                        });
+                });          
                 socket.on("clientSendMessage", async (data) => {
                         const chatMessage = await new ChatMessage(
                                 {
