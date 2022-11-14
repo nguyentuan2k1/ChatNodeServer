@@ -75,6 +75,9 @@ class SocketService {
                                 });
                 });
                 socket.on("updateSentMessages", async (data) =>{
+                        console.log("updateSentMessages");
+                        console.log(data["chatID"]);
+                        console.log(data["userID"]);
                         const messages = await chatMessagesController.updateStatusSentMessage(data["chatID"],data["userID"]);
                         _io.to(data["chatID"]).emit("receiveMessagesUpdated",{
                                 "ListIDMessage":messages
