@@ -25,12 +25,18 @@ exports.logout = async (req, res) => {
                 await AccessToken.deleteOne({
                         userID: user.id
                 });
-                await Presence.updateOne({ userID: user.id }, {
+                var presence = await Presence.findOneAndUpdate({ userID: user.id }, {
                         $set: {
                                 presence: false,
                                 presenceTimeStamp: Date.now()
                         }
-                });
+                }, options);
+                const userRooms = usersRooms.get(req.body.userID);
+                if (userRooms) {
+                        _io.to(userRooms).emit("userLoggedOut", {
+                                "presence": presence
+                        });
+                }
                 return res.status(200).json(
                         new BaseResponse(
                                 1,

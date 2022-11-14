@@ -4,6 +4,7 @@ const fcmService = require("../fcm/fcmService");
 const Presence = require("../models/Presence");
 const ChatMessage = require("../models/ChatMessages");
 const chatMessagesController = require("../controllers/chatMessagesController");
+let options = { returnDocument: 'after' };
 class SocketService {
         connection(socket) {
                 socket.on("LoggedIn", async (data) => {
@@ -13,7 +14,7 @@ class SocketService {
                                         presence: true,
                                         presenceTimeStamp: Date.now()
                                 }
-                        }
+                        },options
                         );
                         if (!usersSocketID.get(socket.id)) {
                                 usersSocketID.set(socket.id,
@@ -46,19 +47,29 @@ class SocketService {
                                 );
                         }
                         if (presence) {
-                                const listChat = await chatController.getChatsIDByUserID(data["userID"]);
-                                const chats = [];
-                                for (let index = 0; index < listChat.length; index++) {
-                                        const element = listChat[index];
-                                        chats.push(element.id);
+                                const userRoom = usersRooms.get(data["userID"]);
+                                if (!userRoom) {
+                                        const listChat = await chatController.getChatsIDByUserID(data["userID"]);
+                                        const chats = [];
+                                        for (let index = 0; index < listChat.length; index++) {
+                                                const element = listChat[index];
+                                                chats.push(element.id);
+                                        }
+                                        usersRooms.set(data["userID"], chats);
+                                        console.log("Rooms");
+                                        console.log(usersRooms);
+                                        socket.join(chats);
+                                        _io.to(chats).emit("userOnline", {
+                                                "presence": presence
+                                        });
                                 }
-                                usersRooms.set(data["userID"], chats);
-                                console.log("Rooms");
-                                console.log(usersRooms);
-                                socket.join(chats);
-                                _io.to(chats).emit("userOnline", {
-                                        "presence": presence
-                                });
+                                else {
+                                        console.log("check user Room logged in")
+                                        console.log(userRoom);
+                                        _io.to(userRoom).emit("userOnline", {
+                                                "presence": presence
+                                        });
+                                }
                         }
                         console.log("userID");
                         console.log(usersID);
@@ -74,15 +85,15 @@ class SocketService {
                                         "chatID": data["chatID"]
                                 });
                 });
-                socket.on("updateSentMessages", async (data) =>{
+                socket.on("updateSentMessages", async (data) => {
                         console.log("updateSentMessages");
                         console.log(data["chatID"]);
                         console.log(data["userID"]);
-                        const messages = await chatMessagesController.updateStatusSentMessage(data["chatID"],data["userID"]);
-                        _io.to(data["chatID"]).emit("receiveMessagesUpdated",{
-                                "ListIDMessage":messages
+                        const messages = await chatMessagesController.updateStatusSentMessage(data["chatID"], data["userID"]);
+                        _io.to(data["chatID"]).emit("receiveMessagesUpdated", {
+                                "ListIDMessage": messages
                         });
-                });          
+                });
                 socket.on("clientSendMessage", async (data) => {
                         const chatMessage = await new ChatMessage(
                                 {
