@@ -5,7 +5,6 @@ const BaseResponse = require('../models/BaseResponse');
 const Errors = require('../models/Errors');
 const Chat = require('../models/Chat');
 const Friends = require('../models/Friends');
-const Users = require('../models/User');
 const UserAndPresence = require('../models/UserAndPresence');
 const ChatUserAndPresence = require('../models/ChatUserAndPresence');
 exports.findChatByKeyWord = async (req, res) => {
@@ -94,10 +93,9 @@ exports.createAndJoinChat = async (req, res) => {
                 if (!chat) {
                         chat = await Chat.findOne({
                                 users: [req.body.userIDFriend, req.body.userID]
-        
+
                         });
-                        if(!chat)
-                        {
+                        if (!chat) {
                                 chat = await new Chat({
                                         users: [req.body.userID, req.body.userIDFriend],
                                         active: false,
@@ -105,6 +103,50 @@ exports.createAndJoinChat = async (req, res) => {
                                         userIDLastMessage: req.body.userID,
                                         timeLastMessage: Date.now()
                                 }).save();
+
+                                var listUser;
+                                if (req.body.userID == req.body.userIDFriend) {
+                                        listUser = [req.body.userID];
+                                }
+                                else {
+                                        listUser = [req.body.userID, req.body.userIDFriend];
+                                }
+                                for (let index = 0; index < listUser.length; index++) {
+                                        const elementUserID = listUser[index];
+                                        const userRoom = usersRooms.get(elementUserID);
+                                        console.log("check userRoom");
+                                        console.log(userRoom);
+                                        if (userRoom) {
+                                                usersRooms.get(elementUserID).push(chat.id);
+                                        }
+                                        console.log(usersRooms);
+                                        const user = usersID.get(elementUserID);
+                                        if (user) {
+                                                var userInfo;
+                                                var presence;
+                                                var chatUserPresence;
+                                                if (req.body.userID == elementUserID) {
+                                                        userInfo = await User.findById(req.body.userIDFriend);
+                                                        presence = await Presence.findOne({ userID: req.body.userIDFriend });
+                                                }
+                                                else {
+                                                        userInfo = await User.findById(req.body.userID);
+                                                        presence = await Presence.findOne({ userID: req.body.userID });
+                                                }
+                                                chatUserPresence = new ChatUserAndPresence(
+                                                        chat,
+                                                        userInfo,
+                                                        presence
+                                                );
+                                                for (let index = 0; index < user.socket.length; index++) {
+                                                        const e = user.socket[index];
+                                                        e.join(usersRooms.get(elementUserID));
+                                                        e.emit("receiveNewChat", {
+                                                                "chatUserAndPresence": chatUserPresence
+                                                        });
+                                                }
+                                        }
+                                }
                         }
                 }
                 var userFriend = await getUser(userIDFriend);
@@ -114,9 +156,7 @@ exports.createAndJoinChat = async (req, res) => {
                         new BaseResponse(
                                 1,
                                 Date.now(),
-                                [
-                                        chatUserAndPresence
-                                ],
+                                [chatUserAndPresence],
                                 new Errors(
                                         200,
                                         ""

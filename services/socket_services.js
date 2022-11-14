@@ -3,11 +3,8 @@ const chatController = require("../controllers/chatController");
 const fcmService = require("../fcm/fcmService");
 const Presence = require("../models/Presence");
 const ChatMessage = require("../models/ChatMessages");
-let usersSocketID = new Map();
-let usersID = new Map();
-let usersRooms = new Map();
 class SocketService {
-        //connect_n
+
         connection(socket) {
                 socket.on("LoggedIn", async (data) => {
                         const presence = await Presence.findOneAndUpdate(
@@ -28,16 +25,16 @@ class SocketService {
                         }
                         if (usersID.get(data["userID"])) {
                                 const userID = usersID.get(data["userID"]);
-                                // console.log("print userID");
-                                // console.log(userID);
+                                console.log("print userID");
+                                console.log(userID);
                                 const checkUserIDSocket = userID.socket.find(element => element.id == socket.id);
                                 if (!checkUserIDSocket) {
                                         userID.socket.push(socket);
                                 }
                                 usersID.delete(data["userID"]);
                                 usersID.set(data["userID"], userID);
-                                // console.log("look for check ");
-                                // console.log(data["userID"]);
+                                console.log("look for check ");
+                                console.log(data["userID"]);
                                 usersID.get(data["userID"]);
                         }
                         else {
@@ -63,13 +60,19 @@ class SocketService {
                                         "presence": presence
                                 });
                         }
-                        // console.log("userID");
-                        // console.log(usersID);
-                        // console.log("userSocketID");
-                        // console.log(usersSocketID);
+                        console.log("userID");
+                        console.log(usersID);
+                        console.log("userSocketID");
+                        console.log(usersSocketID);
                 });
-                socket.on("clientSendNewChat", async (data) => {
-
+                socket.on("sendActiveChat", async (data) => {
+                        console.log("sendActiveChat");
+                        console.log(data["chatID"]);
+                        await chatController.updateActiveChat(data["chatID"]);
+                        _io.to(data["chatID"]).emit("receiveActiveChat",
+                                {
+                                        "chatID": data["chatID"]
+                                });
                 });
 
                 socket.on("clientSendMessage", async (data) => {
@@ -126,8 +129,8 @@ class SocketService {
                                         options
                                 );
                                 const userID = usersID.get(userSocket.userID);
-                                // console.log("print userID");
-                                // console.log(userID);
+                                console.log("print userID");
+                                console.log(userID);
                                 if (userID.socket.length > 1) {
                                         const findIndex = userID.socket.findIndex(element => element.id == socket.id);
                                         userID.socket.splice(findIndex, 1);
