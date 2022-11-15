@@ -7,6 +7,7 @@ const Chat = require('../models/Chat');
 const Friends = require('../models/Friends');
 const UserAndPresence = require('../models/UserAndPresence');
 const ChatUserAndPresence = require('../models/ChatUserAndPresence');
+let options = { returnDocument: 'after' }
 exports.findChatByKeyWord = async (req, res) => {
         try {
                 var listFriends;
@@ -249,6 +250,56 @@ exports.changeLanguage = async (req, res) => {
                                 new Errors(
                                         404,
                                         "Update Language Failed",
+                                )
+                        ));
+                }
+        } catch (error) {
+                return res.status(500).json(new BaseResponse(
+                        -1,
+                        Date.now(),
+                        [],
+                        new Errors(
+                                500,
+                                error.toString(),
+                        )
+                ));
+        }
+}
+exports.updateName = async (req, res) => {
+        try {
+                const user = await User.findByIdAndUpdate(req.body.userID,
+                        {
+                                $set: {
+                                        name: req.body.name,
+                                }
+                        }, options);
+                if (user) {
+                        const userRoom = usersRooms.get(user.id);
+                        if(userRoom)
+                        {
+                                _io.to(userRoom).emit("receiveNameUser", {
+                                        "userID":user.id,
+                                        "name":user.name
+                                });
+                        }
+                        return res.status(200).json(new BaseResponse(
+                                1,
+                                Date.now(),
+                                [],
+                                new Errors(
+                                        200,
+                                        "Update Name Success",
+                                )
+                        ));
+                }
+                else {
+                        return res.status(404).json(new BaseResponse(
+                                -1,
+                                Date.now(),
+                                [],
+                                new Errors(
+                                        404,
+                                        "Update Name Failed",
                                 )
                         ));
                 }

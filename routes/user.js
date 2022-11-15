@@ -12,4 +12,6 @@ router.post("/changeThemeMode",userController.changeThemeMode);
 
 router.post("/changeLanguage",userController.changeLanguage);
 
+router.post("/updateName",userController.updateName);
+
 module.exports = router;
