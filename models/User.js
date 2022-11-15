@@ -21,6 +21,16 @@ const UserSchema = new mongoose.Schema({
         deviceToken: {
                 type: String,
                 default: "",
+        },
+        languageCode:{
+                type: String,
+                required: true,
+                default: "vi",
+        },
+        countryCode:{
+                type: String,
+                required: true,
+                default: "VN",
         }
 }, { timeStamp: true }
 );
