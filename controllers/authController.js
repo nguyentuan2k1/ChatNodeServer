@@ -4,7 +4,6 @@ const Presence = require('../models/Presence');
 const jwt = require("jsonwebtoken");
 const BaseResponse = require('../models/BaseResponse');
 const Errors = require('../models/Errors');
-const Chat = require('../models/Chat');
 const Friends = require('../models/Friends');
 let options = { returnDocument: 'after' };
 exports.logout = async (req, res) => {

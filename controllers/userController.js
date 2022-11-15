@@ -1,6 +1,5 @@
 const User = require('../models/User');
 const Presence = require('../models/Presence');
-const jwt = require("jsonwebtoken");
 const BaseResponse = require('../models/BaseResponse');
 const Errors = require('../models/Errors');
 const Chat = require('../models/Chat');
@@ -275,11 +274,10 @@ exports.updateName = async (req, res) => {
                         }, options);
                 if (user) {
                         const userRoom = usersRooms.get(user.id);
-                        if(userRoom)
-                        {
+                        if (userRoom) {
                                 _io.to(userRoom).emit("receiveNameUser", {
-                                        "userID":user.id,
-                                        "name":user.name
+                                        "userID": user.id,
+                                        "name": user.name
                                 });
                         }
                         return res.status(200).json(new BaseResponse(
