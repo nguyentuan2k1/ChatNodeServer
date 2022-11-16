@@ -14,7 +14,7 @@ class SocketService {
                                         presence: true,
                                         presenceTimeStamp: Date.now()
                                 }
-                        },options
+                        }, options
                         );
                         if (!usersSocketID.get(socket.id)) {
                                 usersSocketID.set(socket.id,
@@ -70,11 +70,16 @@ class SocketService {
                                                 "presence": presence
                                         });
                                 }
+                                const reloadData = data["requestReloadData"];
+                                if (reloadData == true) {
+                                        socket.emit("reload", {
+                                                "reloadData": reloadData
+                                        });
+                                }
                         }
                         console.log("userID");
                         console.log(usersID);
                         console.log("userSocketID");
-                        console.log(usersSocketID);
                 });
                 socket.on("sendActiveChat", async (data) => {
                         console.log("sendActiveChat");
