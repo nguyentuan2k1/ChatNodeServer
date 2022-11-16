@@ -55,13 +55,16 @@ class SocketService {
                                                 const element = listChat[index];
                                                 chats.push(element.id);
                                         }
-                                        usersRooms.set(data["userID"], chats);
-                                        console.log("Rooms");
-                                        console.log(usersRooms);
-                                        socket.join(chats);
-                                        _io.to(chats).emit("userOnline", {
-                                                "presence": presence
-                                        });
+                                        if(chats.length == listChat.length)
+                                        {
+                                                usersRooms.set(data["userID"], chats);
+                                                console.log("Rooms");
+                                                console.log(usersRooms);
+                                                socket.join(chats);
+                                                _io.to(chats).emit("userOnline", {
+                                                        "presence": presence
+                                                });
+                                        }
                                 }
                                 else {
                                         console.log("check user Room logged in")
