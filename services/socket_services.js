@@ -55,8 +55,7 @@ class SocketService {
                                                 const element = listChat[index];
                                                 chats.push(element.id);
                                         }
-                                        if(chats.length == listChat.length)
-                                        {
+                                        if (chats.length == listChat.length) {
                                                 usersRooms.set(data["userID"], chats);
                                                 console.log("Rooms");
                                                 console.log(usersRooms);
@@ -82,16 +81,18 @@ class SocketService {
                         }
                         console.log("userID");
                         console.log(usersID);
-                        console.log("userSocketID");
                 });
                 socket.on("sendActiveChat", async (data) => {
                         console.log("sendActiveChat");
                         console.log(data["chatID"]);
-                        await chatController.updateActiveChat(data["chatID"]);
-                        _io.to(data["chatID"]).emit("receiveActiveChat",
-                                {
-                                        "chatID": data["chatID"]
-                                });
+                        const chat = await chatController.updateActiveChat(data["chatID"]);
+                        if (chat) {
+                                _io.to(data["chatID"]).emit("receiveActiveChat",
+                                        {
+                                                "chatID": data["chatID"]
+                                        });
+
+                        }
                 });
                 socket.on("updateSentMessages", async (data) => {
                         console.log("updateSentMessages");
