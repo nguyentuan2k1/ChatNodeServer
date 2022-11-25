@@ -11,21 +11,6 @@ exports.sendNotification = async (to, notification, data, android) => {
                 token: to,
                 data: data,
                 android: android,
-                apns: {
-                        payload: {
-                                aps: {
-                                        'mutable-content': 1
-                                }
-                        },
-                        fcm_options: {
-                                image: 'https://foo.bar.pizza-monster.png'
-                        }
-                },
-                webpush: {
-                        headers: {
-                                image: 'https://foo.bar.pizza-monster.png'
-                        }
-                },
         };
         try {
                 const response = await messaging.send(message);
