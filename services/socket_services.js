@@ -16,16 +16,16 @@ class SocketService {
                                 }
                         }, options
                         );
-                        if (!usersSocketID.get(socket.id)) {
-                                usersSocketID.set(socket.id,
-                                        new UserSocket
-                                                (
-                                                        socket, data["userID"]
-                                                )
-                                );
-                        }
-                        if (usersID.get(data["userID"])) {
-                                const userID = usersID.get(data["userID"]);
+
+                        usersSocketID.set(socket.id,
+                                new UserSocket
+                                        (
+                                                socket, data["userID"]
+                                        )
+                        );
+                        const userID = usersID.get(data["userID"]);
+
+                        if (userID) {
                                 console.log("print userID");
                                 console.log(userID);
                                 const checkUserIDSocket = userID.socket.find(element => element.id == socket.id);
