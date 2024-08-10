@@ -4,7 +4,7 @@ const http = require("http");
 const server = http.createServer(app);
 const dotenv = require("dotenv");
 // const port = process.env.PORT;
-const port = 5000;
+const port = process.env.PORT ?? 5000;
 const { Server } = require("socket.io");
 const mongoose = require("mongoose");
 const authRouter = require("./routes/auth");
@@ -15,13 +15,12 @@ dotenv.config();
 app.use(express.json());
 
 mongoose
-        .connect(process.env.MONGO_URL, {
-                useNewUrlParser: true,
-                useUnifiedTopology: true,
-        })
-        .then(console.log("connected to MongGoDB"))
-        .catch((error) => console.log(error));
-
+  .connect(process.env.MONGO_URL, {
+    useNewUrlParser: true,
+    useUnifiedTopology: true,
+  })
+  .then(console.log("connected to MongGoDB"))
+  .catch((error) => console.log(error));
 
 const io = new Server(server);
 
@@ -40,9 +39,9 @@ app.use("/api/user", userRouter);
 app.use("/api/message", messageRouter);
 
 app.get("/", (req, res) => {
-        res.send("Its working !");
+  res.send("Its working !");
 });
 
 server.listen(port, () => {
-        console.log(`listening on: *${port}`);
+  console.log(`listening on: *${port}`);
 });
