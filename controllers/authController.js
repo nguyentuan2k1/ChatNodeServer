@@ -6,6 +6,8 @@ const BaseResponse = require('../models/BaseResponse');
 const Errors = require('../models/Errors');
 const Friends = require('../models/Friends');
 let options = { returnDocument: 'after' };
+const bcrypt = require('bcrypt');
+const saltRounds = 10;
 exports.logout = async (req, res) => {
         try {
                 const user = await User.findById(req.body.userID);
@@ -141,7 +143,7 @@ exports.loginByToken = async (req, res) => {
 }
 
 exports.register = async (req, res) => {
-        try {
+        try {            
                 console.log(req.body.email);
                 const checkEmail = await User.findOne({ email: req.body.email });
                 if (checkEmail) {
@@ -155,9 +157,14 @@ exports.register = async (req, res) => {
                                 )
                         ));
                 }
+
+                const salt = bcrypt.genSaltSync(saltRounds);
+                const hash = bcrypt.hashSync(req.body.password, salt);
+
                 const newUser = new User({
                         email: req.body.email,
                         name: req.body.name,
+                        password: hash,
                         isDarkMode: false,
                         urlImage: req.urlImage
                 });
@@ -194,9 +201,9 @@ exports.register = async (req, res) => {
 }
 
 exports.login = async (req, res) => {
-        console.log(req.body.email);
         try {
                 const user = await User.findOne({ email: req.body.email });
+
                 if (!user) {
                         return res.status(400).json(
                                 new BaseResponse(
@@ -209,6 +216,22 @@ exports.login = async (req, res) => {
                                         )
                                 ));
                 }
+
+                let checkPassword = bcrypt.compareSync(req.body.password, user.password);
+
+                if (!checkPassword) {
+                    return res.status(400).json(
+                      new BaseResponse(
+                              -1,
+                              Date.now(),
+                              [],
+                              new Errors(
+                                      400,
+                                      "Wrong credentials",
+                              )
+                      ));
+                }
+
                 var accessToken = jwt.sign({ id: user.id }, "mySecrectKey");
 
                 var checkAccess = await AccessToken.findOne({

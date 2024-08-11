@@ -15,7 +15,7 @@ dotenv.config();
 app.use(express.json());
 
 mongoose
-  .connect(process.env.MONGO_URL, {
+  .connect("mongodb+srv://IMD246:IMD246@chatappofme.7asdwag.mongodb.net/", {
     useNewUrlParser: true,
     useUnifiedTopology: true,
   })
