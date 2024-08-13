@@ -6,6 +6,40 @@ const BaseResponse = require('../models/BaseResponse');
 const Errors = require('../models/Errors');
 const Friends = require('../models/Friends');
 let options = { returnDocument: 'after' };
+const bcrypt = require('bcrypt');
+const saltRounds = 10;
+
+async function getAccessToken(user) {
+        if (user == null) return false;
+
+        let userid = "";
+
+        if (typeof user === 'object') {
+                userid = user.id;
+        } else if (typeof user == 'number') {
+                userid = user;
+        }
+
+        var accessToken = jwt.sign({ id: user.id }, "mySecrectKey");
+
+        var checkAccess = await AccessToken.findOne({
+                userID: userid
+        });
+
+        if (checkAccess != null) {
+                accessToken = checkAccess.accessToken;
+        } else {
+                const access = new AccessToken({
+                        accessToken: accessToken,
+                        userID: userid
+                });
+                await access.save();
+                checkAccess = access;
+        }
+
+        return checkAccess;
+}
+
 exports.logout = async (req, res) => {
         try {
                 const user = await User.findById(req.body.userID);
@@ -38,24 +72,16 @@ exports.logout = async (req, res) => {
                 }
                 return res.status(200).json(
                         new BaseResponse(
-                                1,
-                                Date.now(),
                                 [],
-                                new Errors(
-                                        200,
-                                        "Logout Successfully",
-                                )
+                                "Logout Successfully",
+                                200
                         ));
 
         } catch (err) {
                 return res.status(500).json(new BaseResponse(
-                        -1,
-                        Date.now(),
                         [],
-                        new Errors(
-                                500,
-                                err.toString(),
-                        )
+                        "Logout failed",
+                        500
                 ));
         }
 }
@@ -141,23 +167,23 @@ exports.loginByToken = async (req, res) => {
 }
 
 exports.register = async (req, res) => {
-        try {
-                console.log(req.body.email);
+        try {            
                 const checkEmail = await User.findOne({ email: req.body.email });
                 if (checkEmail) {
                         return res.status(403).json(new BaseResponse(
-                                -1,
-                                Date.now(),
                                 [],
-                                new Errors(
-                                        403,
-                                        "Email is already in use",
-                                )
+                                "Email is already in use",
+                                403
                         ));
                 }
+
+                const salt = bcrypt.genSaltSync(saltRounds);
+                const hash = bcrypt.hashSync(req.body.password, salt);
+
                 const newUser = new User({
                         email: req.body.email,
                         name: req.body.name,
+                        password: hash,
                         isDarkMode: false,
                         urlImage: req.urlImage
                 });
@@ -168,14 +194,19 @@ exports.register = async (req, res) => {
                         presenceTimeStamp: Date.now()
                 });
                 await newPresence.save();
-                return res.status(200).json(new BaseResponse(
-                        1,
-                        Date.now(),
-                        [],
-                        new Errors(
-                                200,
-                                "Register Successfully!",
-                        )
+
+                const {accessToken} = await getAccessToken(newUser);
+
+                let {email, name, isDarkMode, urlImage} = newUser;
+                return res.status(200).json(new BaseResponse({ 
+                        email,
+                        name,
+                        isDarkMode,
+                        urlImage,
+                        accessToken
+                },
+                        "Register Successfully!",
+                        200
                 ));
         } catch (error) {
                 console.log(error.toString());
@@ -194,30 +225,36 @@ exports.register = async (req, res) => {
 }
 
 exports.login = async (req, res) => {
-        console.log(req.body.email);
         try {
                 const user = await User.findOne({ email: req.body.email });
+
                 if (!user) {
-                        return res.status(400).json(
-                                new BaseResponse(
-                                        -1,
-                                        Date.now(),
-                                        [],
-                                        new Errors(
-                                                400,
-                                                "Wrong credentials",
-                                        )
-                                ));
+                        return res.status(404).json(
+                                new BaseResponse([], "User not found", 404)
+                        );
                 }
+
+                let checkPassword = bcrypt.compareSync(req.body.password, user.password);
+
+                if (!checkPassword) {
+                    return res.status(401).json(
+                      new BaseResponse(
+                              [],
+                              "User or password is not right . Please try again",
+                              401
+                      ));
+                }
+
                 var accessToken = jwt.sign({ id: user.id }, "mySecrectKey");
+                
 
                 var checkAccess = await AccessToken.findOne({
                         userID: user.id
                 });
+
                 if (checkAccess != null) {
                         accessToken = checkAccess.accessToken;
-                }
-                else {
+                } else {
                         const access = new AccessToken({
                                 accessToken: accessToken,
                                 userID: user.id
@@ -230,6 +267,23 @@ exports.login = async (req, res) => {
                                 presence: true,
                         }
                 }, options);
+
+                const { email, name, isDarkMode, urlImage } = user;
+                const { presenceTimeStamp } = updatePresence;
+
+                return res.status(200).json(
+                        new BaseResponse({
+                                accessToken: accessToken,
+                                email,
+                                name,
+                                isDarkMode,
+                                urlImage,
+                                presenceTimeStamp,
+                        },
+                               "Login successfully",
+                               200
+                        ));
+
                 return res.status(200).json(
                         new BaseResponse(
                                 1,
