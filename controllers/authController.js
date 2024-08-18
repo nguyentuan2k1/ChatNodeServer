@@ -160,14 +160,9 @@ exports.loginByToken = async (req, res) => {
 exports.register = async (req, res) => {
         try {            
                 const checkEmail = await User.findOne({ email: req.body.email });
-                if (checkEmail) {
-                        return res.status(403).json(new BaseResponse(
-                                [],
-                                "Email is already in use",
-                                403
-                        ));
-                }
 
+                if (checkEmail) return customResponse(res, "Email is already in use", 0, 400);
+                
                 const salt = bcrypt.genSaltSync(saltRounds);
                 const hash = bcrypt.hashSync(req.body.password, salt);
 
@@ -189,29 +184,16 @@ exports.register = async (req, res) => {
                 const {accessToken} = await getAccessToken(newUser);
 
                 let {email, name, isDarkMode, urlImage} = newUser;
-                return res.status(200).json(new BaseResponse({ 
+
+                return customResponse(res, "Register Successfully!", 1, 200, {
                         email,
                         name,
                         isDarkMode,
                         urlImage,
                         accessToken
-                },
-                        "Register Successfully!",
-                        200
-                ));
+                });
         } catch (error) {
-                console.log(error.toString());
-                return res.status(500).json(new BaseResponse(
-                        -1,
-                        Date.now(),
-                        []
-                        ,
-                        new Errors(
-                                500,
-                                error.toString(),
-                        )
-
-                ));
+                return customResponse(res, error.toString(), 0, 500);
         }
 }
 
@@ -236,7 +218,7 @@ exports.login = async (req, res) => {
 
                 if (!checkPassword) return customResponse(res, "User or password is not right . Please try again", 0, 401);
 
-                var {accessToken} = getAccessToken(user);
+                var {accessToken} = await getAccessToken(user);
 
                 const updatePresence = await Presence.findOneAndUpdate({ userID: user.id }, {
                         $set: {

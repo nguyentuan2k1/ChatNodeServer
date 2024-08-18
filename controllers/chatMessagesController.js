@@ -1,7 +1,8 @@
 const Chat = require("../models/Chat");
 const BaseResponse = require('../models/BaseResponse');
-const Errors = require('../models/Errors');
 const ChatMessages = require("../models/ChatMessages");
+const Paginate     = require('../models/Pagination');
+const Joi = require('joi');
 
 let options = { returnDocument: 'after' }
 exports.insertManyChatMessage = async (req, res) => {
@@ -95,32 +96,30 @@ exports.updateStatusMessageHttp = async (req, res) => {
 }
 exports.getMessagesByChatID = async (req, res) => {
         try {
-                console.log("check chat id");
-                console.log(req.body.chatID);
-                const messages = await ChatMessages.find({ chatID: req.body.chatID });
-                return res.status(200).json(
-                        new BaseResponse(
-                                1,
-                                Date.now(),
-                                messages,
-                                new Errors(
-                                        200,
-                                        "",
-                                )
-                        )
-                );
+                let schema = Joi.object({
+                        chatID: Joi.string().required(),
+                });
+
+                const {error, validate} = schema.validate({ chatID: req.body.chatID ?? ""});                
+
+                if (error) return BaseResponse.customResponse(res, error.message, 0, 400); 
+
+                const { chatID, page = 1, pageSize = 10 } = req.body;
+
+                const sort = { _id: -1 };
+            
+                const allMessages = await ChatMessages.find({ chatID }).sort(sort);
+                const { total, totalPages, paginated} = Paginate.paginate(allMessages, page, pageSize);
+            
+                return BaseResponse.customResponse(res, "", 1, 200, {
+                    currentPage: page,
+                    totalPages: totalPages,
+                    total: total,
+                    pageSize: pageSize,
+                    messages: paginated
+                });
         } catch (error) {
-                return res.status(500).json(
-                        new BaseResponse(
-                                -1,
-                                Date.now(),
-                                [],
-                                new Errors(
-                                        500,
-                                        err.toString(),
-                                )
-                        )
-                );
+                return BaseResponse.customResponse(res, err.toString(), 0, 500);
         }
 
 }

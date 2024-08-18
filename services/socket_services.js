@@ -14,15 +14,10 @@ class SocketService {
                                         presence: true,
                                         presenceTimeStamp: Date.now()
                                 }
-                        }, options
-                        );
+                        }, options);
 
-                        usersSocketID.set(socket.id,
-                                new UserSocket
-                                        (
-                                                socket, data["userID"]
-                                        )
-                        );
+                        usersSocketID.set(socket.id, new UserSocket(socket, data["userID"]));
+                        
                         const userID = usersID.get(data["userID"]);
 
                         if (userID) {
@@ -79,8 +74,8 @@ class SocketService {
                                         });
                                 }
                         }
-                        console.log("userID");
-                        console.log(usersID);
+                        // console.log("userID");
+                        // console.log(usersID);
                 });
                 socket.on("sendActiveChat", async (data) => {
                         console.log("sendActiveChat");
