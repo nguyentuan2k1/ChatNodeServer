@@ -21,7 +21,12 @@ const ChatSchema = new mongoose.Schema({
         active: {
                 type: Boolean,
                 default: false, 
-        }
+        },
+        typeMessage: {
+                type:String,
+                required:true,
+                default: "text"
+        },
 }, { timestamps: true }
 );
 

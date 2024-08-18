@@ -1,4 +1,6 @@
 const User = require('../models/User');
+const dotenv = require("dotenv");
+dotenv.config();
 const AccessToken = require('../models/AccessToken');
 const Presence = require('../models/Presence');
 const jwt = require("jsonwebtoken");
@@ -9,7 +11,7 @@ let options = { returnDocument: 'after' };
 const Joi = require('joi');
 const bcrypt = require('bcrypt');
 const saltRounds = 10;
-const secretKey = "mySecrectKey";
+const secretKey = process.env.SECRET_KEY_JWT;
 
 async function getAccessToken(user) {
         if (user == null) return false;
