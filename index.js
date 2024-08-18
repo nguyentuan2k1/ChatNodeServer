@@ -9,13 +9,15 @@ const { Server } = require("socket.io");
 const mongoose = require("mongoose");
 const authRouter = require("./routes/auth");
 const userRouter = require("./routes/user");
+const friendRouter = require("./routes/friend");
 const messageRouter = require("./routes/message");
+const chatRouter = require("./routes/chat");
 const SocketService = require("./services/socket_services");
 dotenv.config();
 app.use(express.json());
 
 mongoose
-  .connect("mongodb+srv://IMD246:IMD246@chatappofme.7asdwag.mongodb.net/", {
+  .connect(process.env.MONGO_URL, {
     useNewUrlParser: true,
     useUnifiedTopology: true,
   })
@@ -25,6 +27,8 @@ mongoose
 const io = new Server(server);
 
 global._io = io;
+global.dotenv = dotenv;
+global.dotenv.config();
 
 io.on("connection", SocketService.connection);
 
@@ -37,6 +41,10 @@ app.use("/api/auth", authRouter);
 app.use("/api/user", userRouter);
 
 app.use("/api/message", messageRouter);
+
+app.use("/api/chat", chatRouter);
+
+app.use("/api/friend", friendRouter);
 
 app.get("/", (req, res) => {
   res.send("Its working !");

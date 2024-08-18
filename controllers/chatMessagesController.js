@@ -65,6 +65,7 @@ exports.updateStatusSentMessage = async (chatID, userID) => {
                 return listMessage;
         }
 }
+
 exports.updateStatusMessageHttp = async (req, res) => {
         try {
                 const getMessagesSent = await ChatMessages.find({

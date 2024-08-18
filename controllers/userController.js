@@ -6,7 +6,9 @@ const Chat = require('../models/Chat');
 const Friends = require('../models/Friends');
 const UserAndPresence = require('../models/UserAndPresence');
 const ChatUserAndPresence = require('../models/ChatUserAndPresence');
+
 let options = { returnDocument: 'after' }
+
 exports.findChatByKeyWord = async (req, res) => {
         try {
                 var listFriends;
@@ -228,8 +230,10 @@ exports.updateName = async (req, res) => {
                 ));
         }
 }
+
 const getUser = async (userID) => {
         const findUser = await User.findById(userID);
+
         if (!findUser) {
                 return null;
         } else {
