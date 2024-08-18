@@ -218,7 +218,7 @@ exports.login = async (req, res) => {
 
                 if (!checkPassword) return customResponse(res, "User or password is not right . Please try again", 0, 401);
 
-                var {accessToken} = getAccessToken(user);
+                var {accessToken} = await getAccessToken(user);
 
                 const updatePresence = await Presence.findOneAndUpdate({ userID: user.id }, {
                         $set: {
