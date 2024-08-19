@@ -117,7 +117,7 @@ exports.getMessagesByChatID = async (req, res) => {
                     totalPages: totalPages,
                     total: total,
                     pageSize: pageSize,
-                    messages: paginated
+                    data: paginated
                 });
         } catch (error) {
                 return BaseResponse.customResponse(res, err.toString(), 0, 500);
