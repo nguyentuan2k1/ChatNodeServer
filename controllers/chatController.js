@@ -11,7 +11,9 @@ exports.getChat = async (chatID) => {
 exports.getChatsIDByUserID = async (req, res) => {
         const { userID, page = 1, pageSize = 15 } = req.query;
 
-        let listChat = await Chat.find({ users: { $in: userID } });
+        let listChat = await Chat.find({
+          users: { $in: userID },
+        });
 
         var listChatUserAndPresence = [];
 
@@ -19,11 +21,15 @@ exports.getChatsIDByUserID = async (req, res) => {
                 const element = listChat[index];
                 var findUserFriend;
                 if (element.users.length == 2) { // bằng 2 -> chat 1 : 1
-                        if (element.users[0] == userID && element.users[1] == userID) {
-                                findUserFriend = userID;
-                        }
-                        else {
-                                findUserFriend = element.users.find((element) => element != userID);
+                        if (
+                          element.users[0] == userID &&
+                          element.users[1] == userID
+                        ) {
+                          findUserFriend = userID;
+                        } else {
+                          findUserFriend = element.users.find(
+                            (element) => element != userID
+                          );
                         }
                 } else { // chat > 2
 
