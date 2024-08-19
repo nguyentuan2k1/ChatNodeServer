@@ -19,11 +19,11 @@ exports.getChatsIDByUserID = async (req, res) => {
                 const element = listChat[index];
                 var findUserFriend;
                 if (element.users.length == 2) { // bằng 2 -> chat 1 : 1
-                        if (element.users[0] == req.body.userID && element.users[1] == req.body.userID) {
-                                findUserFriend = req.body.userID;
+                        if (element.users[0] == userID && element.users[1] == userID) {
+                                findUserFriend = userID;
                         }
                         else {
-                                findUserFriend = element.users.find((element) => element != req.body.userID);
+                                findUserFriend = element.users.find((element) => element != userID);
                         }
                 } else { // chat > 2
 
@@ -34,10 +34,10 @@ exports.getChatsIDByUserID = async (req, res) => {
                 listChatUserAndPresence.push({name : userFriend.name, urlImage : userFriend.urlImage , presence : true, users : element.users, lastMessage : element.lastMessage, typeMessage : element.typeMessage, timeLastMessage : element.timeLastMessage});
         }
 
-        const { total, totalPages, paginated} = Paginate.paginate(listChatUserAndPresence, req.query.page ?? 1, req.query.pageSize ?? 15);
+        const { currentPage,total, totalPages, paginated} = Paginate.paginate(listChatUserAndPresence, parseInt(page) , parseInt(pageSize));
             
         return BaseResponse.customResponse(res, "", 1, 200, {
-          currentPage: parseInt(page),
+          currentPage: currentPage,
           totalPages: totalPages,
           total: total,
           pageSize: parseInt(pageSize),
