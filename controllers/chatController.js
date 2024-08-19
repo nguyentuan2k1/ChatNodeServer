@@ -39,7 +39,7 @@ exports.getChatsIDByUserID = async (req, res) => {
             totalPages: totalPages,
             total: total,
             pageSize: req.query.pageSize ?? 15,
-            chat: paginated
+            data: paginated
         });
 
 
