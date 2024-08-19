@@ -8,8 +8,10 @@ exports.getChat = async (chatID) => {
         return await Chat.findById(chatID);
 }
 
-exports.getChatsIDByUserID = async (req, res) => {          
-        let listChat = await Chat.find({"users" : {"$in" : req.query.userID}})
+exports.getChatsIDByUserID = async (req, res) => {
+        const { userID, page = 1, pageSize = 15 } = req.query;
+
+        let listChat = await Chat.find({ users: { $in: userID } });
 
         var listChatUserAndPresence = [];
 
@@ -35,11 +37,11 @@ exports.getChatsIDByUserID = async (req, res) => {
         const { total, totalPages, paginated} = Paginate.paginate(listChatUserAndPresence, req.query.page ?? 1, req.query.pageSize ?? 15);
             
         return BaseResponse.customResponse(res, "", 1, 200, {
-            currentPage: req.query.page ?? 1,
-            totalPages: totalPages,
-            total: total,
-            pageSize: req.query.pageSize ?? 15,
-            data: paginated
+          currentPage: parseInt(page),
+          totalPages: totalPages,
+          total: total,
+          pageSize: parseInt(pageSize),
+          data: paginated,
         });
 
 
