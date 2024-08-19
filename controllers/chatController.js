@@ -1,20 +1,21 @@
 const Chat = require("../models/Chat");
 const BaseResponse = require('../models/BaseResponse');
-const ChatUserAndPresence = require('../models/ChatUserAndPresence');
 const User = require('../models/User');
 const Paginate     = require('../models/Pagination');
+const helper = require('../services/helper')
+
 
 exports.getChat = async (chatID) => {
         return await Chat.findById(chatID);
 }
 
 exports.getChatsIDByUserID = async (req, res) => {
-        const { userID, page = 1, pageSize = 15 } = req.query;
+        const {page = 1, pageSize = 15 } = req.query;
 
-        let listChat = await Chat.find({
-          users: { $in: userID },
-        });
-
+        let userID       = await helper.getInfoCurrentUser(req, res);        
+        let dataPaginate = await Paginate.paginate(Chat.find({users: { $in: userID }}), Chat.find({users: { $in: userID }}), parseInt(page) , parseInt(pageSize));
+        let listChat     = dataPaginate.data;
+        
         var listChatUserAndPresence = [];
 
         for (let index = 0; index < listChat.length; index++) {
@@ -40,18 +41,15 @@ exports.getChatsIDByUserID = async (req, res) => {
                 listChatUserAndPresence.push({name : userFriend.name, urlImage : userFriend.urlImage , presence : true, users : element.users, lastMessage : element.lastMessage, typeMessage : element.typeMessage, timeLastMessage : element.timeLastMessage});
         }
 
-        const { currentPage,total, totalPages, paginated} = Paginate.paginate(listChatUserAndPresence, parseInt(page) , parseInt(pageSize));
+        const { currentPage,total, totalPages} = dataPaginate;
             
         return BaseResponse.customResponse(res, "", 1, 200, {
           currentPage: currentPage,
           totalPages: totalPages,
           total: total,
           pageSize: parseInt(pageSize),
-          data: paginated,
+          data: listChatUserAndPresence,
         });
-
-
-        // return BaseResponse.customResponse(res, "", 1, 200, )
 }
 
 exports.updateMessageChat = async (chatID, message) => {
