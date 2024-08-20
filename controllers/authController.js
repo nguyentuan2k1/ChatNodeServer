@@ -12,6 +12,7 @@ const Joi = require('joi');
 const bcrypt = require('bcrypt');
 const saltRounds = 10;
 const secretKey = process.env.SECRET_KEY_JWT;
+const helper = require('../services/helper')
 
 async function getAccessToken(user) {
         if (user == null) return false;
@@ -173,8 +174,10 @@ exports.register = async (req, res) => {
                         name: req.body.name,
                         password: hash,
                         isDarkMode: false,
-                        urlImage: req.urlImage
+                        urlImage: req.body.urlImage,
+                        deviceToken: req.body.device_token
                 });
+
                 const user = await newUser.save();
                 const newPresence = new Presence({
                         userID: user.id,
@@ -185,14 +188,15 @@ exports.register = async (req, res) => {
 
                 const {accessToken} = await getAccessToken(newUser);
 
-                let {email, name, isDarkMode, urlImage} = newUser;
+                let {email, name, isDarkMode, urlImage, deviceToken} = newUser;
 
                 return customResponse(res, "Register Successfully!", 1, 200, {
                         email,
                         name,
                         isDarkMode,
                         urlImage,
-                        accessToken
+                        accessToken,
+                        deviceToken
                 });
         } catch (error) {
                 return customResponse(res, error.toString(), 0, 500);
@@ -214,7 +218,11 @@ exports.login = async (req, res) => {
 
                 const user = await User.findOne({ email: req.body.email });
 
-                if (!user) return customResponse(res, "User not found", 0, 404);  
+                if (!user) return customResponse(res, "User not found", 0, 404);
+
+                user.deviceToken = req.body.device_token ?? null;
+
+                user.save();
 
                 let checkPassword = bcrypt.compareSync(req.body.password, user.password);
 
@@ -228,7 +236,7 @@ exports.login = async (req, res) => {
                         }
                 }, options);
 
-                const { email, name, isDarkMode, urlImage } = user;
+                const { email, name, isDarkMode, urlImage, deviceToken } = user;
                 const { presenceTimeStamp } = updatePresence;
 
                 return customResponse(res, "Login successfully", 1, 200, {
@@ -238,6 +246,7 @@ exports.login = async (req, res) => {
                         isDarkMode,
                         urlImage,
                         presenceTimeStamp,
+                        deviceToken
                 });
 
         } catch (err) {
@@ -370,5 +379,21 @@ exports.getPresence = async (req, res) => {
                         )
 
                 ));
+        }
+}
+
+exports.refreshDeviceToken = async(req, res) => {
+        try {
+                const deviceToken = req.body.device_token;
+                let userId        = await helper.getInfoCurrentUser(req, res);
+
+                User.findOneAndUpdate({userID : userId}, {deviceToken: deviceToken });
+                
+                return BaseResponse.customResponse(res, "update successfully", 1, 200, {
+                        user_id : userId,
+                        deviceToken : deviceToken
+                })
+        } catch(err) {
+                return BaseResponse.customResponse(res, err.toString(), 0, 500)
         }
 }
