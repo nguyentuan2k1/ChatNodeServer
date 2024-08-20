@@ -1,7 +1,6 @@
-const { default: mongoose } = require('mongoose');
 const BaseResponse = require('../models/BaseResponse');
-const dotenv = require("dotenv");
-const jwt = require("jsonwebtoken");
+const dotenv       = require("dotenv");
+const jwt          = require("jsonwebtoken");
 
 dotenv.config();
 
