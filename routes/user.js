@@ -10,4 +10,6 @@ router.post("/createandjoinchat", userController.createAndJoinChat);
 
 router.post("/updateName", userController.updateName);
 
+router.get('/get-users', userController.getUsers);
+
 module.exports = router;
