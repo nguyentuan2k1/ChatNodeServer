@@ -6,6 +6,8 @@ const Chat = require('../models/Chat');
 const Friends = require('../models/Friends');
 const UserAndPresence = require('../models/UserAndPresence');
 const ChatUserAndPresence = require('../models/ChatUserAndPresence');
+const helper = require('../services/helper')
+const Paginate = require('../models/Pagination');
 
 let options = { returnDocument: 'after' }
 
@@ -246,4 +248,43 @@ const getPresenceByUserID = async (userID) => {
                 return null;
         }
         return findPresence;
+}
+
+exports.getUsers =  async (req, res) => {        
+        let userId = await helper.getInfoCurrentUser(req, res);
+
+        const {page = 1, pageSize = 15} = req.query;
+
+        if (userId.statusCode == 401) return BaseResponse.customResponse(res, "Unauthorized", 0 , 401);
+                
+        let listFriend = await Friends.find({
+                userID: userId,
+        });
+        
+        const {currentPage,totalPages, total, data} =  await Paginate.paginate(User.find().select('name _id urlImage'), User.find(), page, pageSize);
+        let dataItem = [];
+
+        // 1 chưa thêm
+        // 2 gửi yêu cầu 
+        // 3 đã thêm
+        // 4 đợi duyệt 
+        // 5 chặn 
+
+        data.forEach(user => {
+                let {name, id, urlImage} = user;                
+                let friend = listFriend.find(friend => friend.friendId == user.id );
+                let status = 1;
+
+                if (friend) status = friend.status;
+
+                dataItem.push({id, name, urlImage, status: status });
+        });
+
+        return BaseResponse.customResponse(res, "", 1, 200, {
+                currentPage,
+                pageSize,
+                total,
+                totalPages,
+                data : dataItem
+        });
 }

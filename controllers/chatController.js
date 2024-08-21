@@ -4,7 +4,6 @@ const User = require('../models/User');
 const Paginate     = require('../models/Pagination');
 const helper = require('../services/helper')
 
-
 exports.getChat = async (chatID) => {
         return await Chat.findById(chatID);
 }
@@ -37,8 +36,9 @@ exports.getChatsIDByUserID = async (req, res) => {
                 }
 
                 const userFriend = await User.findById(findUserFriend);
+                  
                 
-                listChatUserAndPresence.push({name : userFriend.name, urlImage : userFriend.urlImage , presence : true, users : element.users, lastMessage : element.lastMessage, typeMessage : element.typeMessage, timeLastMessage : element.timeLastMessage});
+                listChatUserAndPresence.push({name : userFriend.name, urlImage : userFriend.urlImage ? userFriend.urlImage : "https://static.tuoitre.vn/tto/i/s626/2015/09/03/cho-meo-12-1441255605.jpg" , presence : true, users : element.users, lastMessage : element.lastMessage, typeMessage : element.typeMessage, timeLastMessage : element.timeLastMessage});
         }
 
         const { currentPage,total, totalPages} = dataPaginate;

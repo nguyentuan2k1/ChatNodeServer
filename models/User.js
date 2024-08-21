@@ -35,6 +35,10 @@ const UserSchema = new mongoose.Schema({
                 type: String,
                 required: true,
                 default: "VN",
+        },
+        phone : {
+                type: String,
+                default: "",
         }
 }, { timeStamp: true }
 );

@@ -175,7 +175,8 @@ exports.register = async (req, res) => {
                         password: hash,
                         isDarkMode: false,
                         urlImage: req.body.urlImage,
-                        deviceToken: req.body.device_token
+                        deviceToken: req.body.device_token,
+                        phone : req.body.phone
                 });
 
                 const user = await newUser.save();
@@ -188,7 +189,7 @@ exports.register = async (req, res) => {
 
                 const {accessToken} = await getAccessToken(newUser);
 
-                let {email, name, isDarkMode, urlImage, deviceToken} = newUser;
+                let {email, name, isDarkMode, urlImage, deviceToken, phone} = newUser;
 
                 return customResponse(res, "Register Successfully!", 1, 200, {
                         email,
@@ -196,7 +197,8 @@ exports.register = async (req, res) => {
                         isDarkMode,
                         urlImage,
                         accessToken,
-                        deviceToken
+                        deviceToken,
+                        phone
                 });
         } catch (error) {
                 return customResponse(res, error.toString(), 0, 500);
@@ -236,7 +238,7 @@ exports.login = async (req, res) => {
                         }
                 }, options);
 
-                const { email, name, isDarkMode, urlImage, deviceToken } = user;
+                const { email, name, isDarkMode, urlImage, deviceToken, phone } = user;
                 const { presenceTimeStamp } = updatePresence;
 
                 return customResponse(res, "Login successfully", 1, 200, {
@@ -246,7 +248,8 @@ exports.login = async (req, res) => {
                         isDarkMode,
                         urlImage,
                         presenceTimeStamp,
-                        deviceToken
+                        deviceToken,
+                        phone
                 });
 
         } catch (err) {
