@@ -15,7 +15,7 @@ const FriendsSchema = new mongoose.Schema({
                 // 1 chưa thêm
                 // 2 gửi yêu cầu 
                 // 3 đã thêm
-                // 4 đợi duyệt 
+                // 4 đợi duyệt
                 // 5 chặn 
         }
 });

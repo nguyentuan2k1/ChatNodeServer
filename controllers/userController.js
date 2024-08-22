@@ -253,7 +253,7 @@ const getPresenceByUserID = async (userID) => {
 exports.getUsers =  async (req, res) => {        
         let userId = await helper.getInfoCurrentUser(req, res);
 
-        const {page = 1, pageSize = 15} = req.query;
+        const {page = 1, pageSize = 15, keyword} = req.query;
 
         if (userId.statusCode == 401) return BaseResponse.customResponse(res, "Unauthorized", 0 , 401);
                 
@@ -276,6 +276,10 @@ exports.getUsers =  async (req, res) => {
                 let status = 1;
 
                 if (friend) status = friend.status;
+
+                if (status == 5) return;
+
+                urlImage = urlImage ? urlImage : "https://static.tuoitre.vn/tto/i/s626/2015/09/03/cho-meo-12-1441255605.jpg";
 
                 dataItem.push({id, name, urlImage, status: status });
         });
