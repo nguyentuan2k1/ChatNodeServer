@@ -214,7 +214,7 @@ exports.login = async (req, res) => {
                             password : Joi.string().required()
                 });
 
-                const {error, validate} = schema.validate({ email: req.body.email ?? "", password: req.body.password ?? "" });                
+                const {error} = schema.validate({ email: req.body.email ?? "", password: req.body.password ?? "" });                
 
                 if (error) return customResponse(res, error.message, 0, 400);                
 

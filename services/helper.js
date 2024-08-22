@@ -12,7 +12,7 @@ class Helper {
         if (!token) return BaseResponse.customResponse(res, "Token is required", 0, 401);
         
         let userId = "";
-
+        
         jwt.verify(token, process.env.SECRET_KEY_JWT, (err, user) => {
         if (err) return BaseResponse.customResponse(res, "Token is not valid", 0, 401);
     

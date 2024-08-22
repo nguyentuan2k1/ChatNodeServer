@@ -6,4 +6,6 @@ router.get("/get-friend", friendController.getFriends);
 
 router.post("/add-friend", friendController.addFriend);
 
+router.post('/update-friend-status', friendController.updateFriendStatus);
+
 module.exports = router;
