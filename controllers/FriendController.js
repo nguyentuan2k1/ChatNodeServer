@@ -140,6 +140,43 @@ exports.updateFriendStatus = async (req, res) => {
             senderFriendData.save();
         }
 
+        let userInfo = await User.findById(userId)
+
+        let friendInfo = await User.findById(friend_id)
+
+        let bodyNotification = ""
+        let titleNotification = ""
+
+        switch (status) {
+            case 2: 
+            bodyNotification = `${userInfo.name} đã gửi yêu cầu kết bạn`
+            titleNotification = "Thông báo kết bạn";
+            break;   
+            case 3: 
+            bodyNotification = `${userInfo.name} đã đồng ý kết bạn`
+            titleNotification = "Thông báo kết bạn";
+            break;
+            case 1:
+            case 4:     
+            default:
+                break;
+        }
+
+        await fcmService.sendNotification(
+          friendInfo.deviceToken,
+          titleNotification,
+          bodyNotification,
+          {
+            event: "add_contact",
+            data: JSON.stringify({
+              sender_status: status,
+              friend_status: statusSender,
+              friend_id: userId,
+              urlImage: userInfo.urlImage,
+            }),
+          }
+        );
+
         return BaseResponse.customResponse(res, "Update successfully", 1, 200, { user_status : currentUserFriendData.status });
     } catch(err) {
         return BaseResponse.customResponse(res, err.toString(), 0, 500);
