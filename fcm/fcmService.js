@@ -5,9 +5,12 @@ admin.initializeApp({
 });
 // const keyFCM = "key=AAAAAhBAkwA:APA91bEeXRXiQfvyCIiBna06at2R7WIEMrBjzDz8r7XfhdPF-P9mZSzbUs0m6wkTtN6vNyZ_bKm6uV4IujK_LnafASct2tHToIeEXRadZ7ZYecLYuZabrwhmzOL035w9Bedz4MSmeeoe";
 const messaging = admin.messaging();
-exports.sendNotification = async (to, notification, data, android) => {
+exports.sendNotification = async (to, title, body , data, android) => {
         let message = {
-                notification: notification,
+                notification: {
+                        title: title,
+                        body: body,
+                },
                 token: to,
                 data: data,
                 android: android,
