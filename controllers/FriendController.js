@@ -12,10 +12,10 @@ const fcmService = require('../fcm/fcmService');
 dotenv.config();
 
 exports.getFriends = async (req, res) => {
-    try {
+    try {        
         let userId = await helper.getInfoCurrentUser(req, res);
 
-        const { keyword, page = 1, pageSize = 15 } = req.query;
+        const { keyword, page = 1, pageSize = 15, exceptFriendIds } = req.query;
 
         let queryConditions = {};
 
@@ -25,7 +25,12 @@ exports.getFriends = async (req, res) => {
             ];
         }
 
-        const getFriends = await Paginate.paginate(Friends.find({ userID: userId }), Friends.find({ userID: userId }), page, pageSize);
+        if (exceptFriendIds) {
+            const exceptFriendIdsArray = exceptFriendIds.split(',');            
+            queryConditions.friendId = { $nin: exceptFriendIdsArray };
+        }        
+
+        const getFriends = await Paginate.paginate(Friends.find({ userID: userId, ...queryConditions }), Friends.find({ userID: userId, ...queryConditions }), page, pageSize);
         
         const friendIds = getFriends.data.map(item => item.friendId);
 
@@ -160,7 +165,7 @@ exports.updateFriendStatus = async (req, res) => {
             case 4:     
             default:
                 break;
-        }
+        }            
 
         await fcmService.sendNotification(
           friendInfo.deviceToken,
@@ -173,7 +178,12 @@ exports.updateFriendStatus = async (req, res) => {
               friend_status: statusSender,
               friend_id: userId,
               urlImage: userInfo.urlImage,
-              friendInfo : friendInfo,
+              friendInfo : {
+                name : friendInfo.name,
+                urlImage : friendInfo.urlImage ?? "https://static.tuoitre.vn/tto/i/s626/2015/09/03/cho-meo-12-1441255605.jpg",
+                presence : true,
+                id: friendInfo.id,
+              }
             }),
           }
         );
