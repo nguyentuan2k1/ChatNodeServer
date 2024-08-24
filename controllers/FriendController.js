@@ -178,7 +178,7 @@ exports.updateFriendStatus = async (req, res) => {
               friend_status: statusSender,
               friend_id: userId,
               urlImage: userInfo.urlImage,
-              friendInfo : {
+              friend_info : {
                 name : userInfo.name,
                 urlImage : userInfo.urlImage ?? "https://static.tuoitre.vn/tto/i/s626/2015/09/03/cho-meo-12-1441255605.jpg",
                 presence : true,
