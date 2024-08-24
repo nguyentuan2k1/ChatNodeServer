@@ -28,7 +28,9 @@ exports.getFriends = async (req, res) => {
         if (exceptFriendIds) {
             const exceptFriendIdsArray = exceptFriendIds.split(',');            
             queryConditions.friendId = { $nin: exceptFriendIdsArray };
-        }        
+        }
+
+        queryConditions.status = { $eq: 3 };
 
         const getFriends = await Paginate.paginate(Friends.find({ userID: userId, ...queryConditions }), Friends.find({ userID: userId, ...queryConditions }), page, pageSize);
         
