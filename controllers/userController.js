@@ -260,8 +260,13 @@ exports.getUsers =  async (req, res) => {
         let listFriend = await Friends.find({
                 userID: userId,
         });
+
+        let queryConditions = {};
+
+        if (keyword) queryConditions.name = { $regex: keyword, $options: 'i' }
         
-        const {currentPage,totalPages, total, data} =  await Paginate.paginate(User.find().select('name _id urlImage'), User.find(), page, pageSize);
+        const {currentPage,totalPages, total, data} =  await Paginate.paginate(User.find(queryConditions).select('name _id urlImage'), User.find(queryConditions), page, pageSize);
+        
         let dataItem = [];
 
         // 1 chưa thêm
