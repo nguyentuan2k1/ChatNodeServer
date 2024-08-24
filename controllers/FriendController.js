@@ -165,7 +165,7 @@ exports.updateFriendStatus = async (req, res) => {
             case 4:     
             default:
                 break;
-        }            
+        }
 
         await fcmService.sendNotification(
           friendInfo.deviceToken,
@@ -180,7 +180,7 @@ exports.updateFriendStatus = async (req, res) => {
               urlImage: userInfo.urlImage,
               friend_info : {
                 name : userInfo.name,
-                urlImage : userInfo.urlImage ?? "https://static.tuoitre.vn/tto/i/s626/2015/09/03/cho-meo-12-1441255605.jpg",
+                urlImage : userInfo.urlImage ?  userInfo.urlImage :"https://static.tuoitre.vn/tto/i/s626/2015/09/03/cho-meo-12-1441255605.jpg",
                 presence : true,
                 id: userInfo.id,
               }
