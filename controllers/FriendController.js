@@ -39,8 +39,8 @@ exports.getFriends = async (req, res) => {
             name: item.name,
             urlImage: item.urlImage ? item.urlImage : "https://static.tuoitre.vn/tto/i/s626/2015/09/03/cho-meo-12-1441255605.jpg",
             presence : true,
+            id       : item.id,
         }));
-        
 
         const {currentPage, total, totalPages} = getFriends;
 
@@ -173,6 +173,7 @@ exports.updateFriendStatus = async (req, res) => {
               friend_status: statusSender,
               friend_id: userId,
               urlImage: userInfo.urlImage,
+              friendInfo : friendInfo,
             }),
           }
         );
