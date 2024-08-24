@@ -12,7 +12,7 @@ class Helper {
         const token = authHeader && authHeader.split(' ')[1]; // 'Bearer TOKEN'
 
         if (blacklistedTokens.has(token)) {
-            return res.status(401).json({ message: 'Token is blacklisted' });
+            return BaseResponse.customResponse(res, "Token is in blacklist", 0, 401);
           }
 
   

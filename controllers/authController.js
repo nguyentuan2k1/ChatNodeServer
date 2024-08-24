@@ -405,10 +405,9 @@ exports.logout = async(req, res) => {
         try {
                 const token = req.headers.authorization?.split(' ')[1];
 
-                if (!token) {
-                  return res.status(400).json({ message: 'No token provided' });
-                }
-              
+                if (!token) return  BaseResponse.customResponse(res, "Token is required", 1, 401)
+                
+        
                 // Add token to blacklist
                 blacklistedTokens.add(token);
                 
