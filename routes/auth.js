@@ -16,5 +16,6 @@ router.post("/loginwithgoogle", authController.loginByGoogle);
 
 router.post('/refresh-device-token', authController.refreshDeviceToken);
 
+router.get('/logout', authController.logout);
 
 module.exports = router;

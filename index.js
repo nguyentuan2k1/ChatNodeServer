@@ -29,6 +29,8 @@ const io = new Server(server);
 global._io = io;
 global.dotenv = dotenv;
 global.dotenv.config();
+global.blacklistedTokens = new Set(); // In-memory blacklist
+
 
 io.on("connection", SocketService.connection);
 

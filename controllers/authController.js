@@ -12,7 +12,7 @@ const Joi = require('joi');
 const bcrypt = require('bcrypt');
 const saltRounds = 10;
 const secretKey = process.env.SECRET_KEY_JWT;
-const helper = require('../services/helper')
+const helper = require('../services/helper');
 
 async function getAccessToken(user) {
         if (user == null) return false;
@@ -397,6 +397,22 @@ exports.refreshDeviceToken = async(req, res) => {
                         deviceToken : deviceToken
                 })
         } catch(err) {
+                return BaseResponse.customResponse(res, err.toString(), 0, 500)
+        }
+}
+
+exports.logout = async(req, res) => {
+        try {
+                const token = req.headers.authorization?.split(' ')[1];
+
+                if (!token) return  BaseResponse.customResponse(res, "Token is required", 1, 401)
+                
+        
+                // Add token to blacklist
+                blacklistedTokens.add(token);
+                
+                return BaseResponse.customResponse(res, "Logout successfully", 1, 200, true)
+        } catch (err) {
                 return BaseResponse.customResponse(res, err.toString(), 0, 500)
         }
 }

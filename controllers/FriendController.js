@@ -28,7 +28,9 @@ exports.getFriends = async (req, res) => {
         if (exceptFriendIds) {
             const exceptFriendIdsArray = exceptFriendIds.split(',');            
             queryConditions.friendId = { $nin: exceptFriendIdsArray };
-        }        
+        }
+
+        queryConditions.status = { $eq: 3 };
 
         const getFriends = await Paginate.paginate(Friends.find({ userID: userId, ...queryConditions }), Friends.find({ userID: userId, ...queryConditions }), page, pageSize);
         
@@ -165,7 +167,7 @@ exports.updateFriendStatus = async (req, res) => {
             case 4:     
             default:
                 break;
-        }            
+        }
 
         await fcmService.sendNotification(
           friendInfo.deviceToken,
@@ -178,11 +180,11 @@ exports.updateFriendStatus = async (req, res) => {
               friend_status: statusSender,
               friend_id: userId,
               urlImage: userInfo.urlImage,
-              friendInfo : {
-                name : friendInfo.name,
-                urlImage : friendInfo.urlImage ?? "https://static.tuoitre.vn/tto/i/s626/2015/09/03/cho-meo-12-1441255605.jpg",
+              friend_info : {
+                name : userInfo.name,
+                urlImage : userInfo.urlImage ?  userInfo.urlImage :"https://static.tuoitre.vn/tto/i/s626/2015/09/03/cho-meo-12-1441255605.jpg",
                 presence : true,
-                id: friendInfo.id,
+                id: userInfo.id,
               }
             }),
           }

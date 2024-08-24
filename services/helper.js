@@ -6,8 +6,15 @@ dotenv.config();
 
 class Helper {
     static async getInfoCurrentUser (req, res) {
-        const authHeader = req.headers['authorization'];
+        const authHeader = req.headers['authorization'];        
+        
+        
         const token = authHeader && authHeader.split(' ')[1]; // 'Bearer TOKEN'
+
+        if (blacklistedTokens.has(token)) {
+            return BaseResponse.customResponse(res, "Token is in blacklist", 0, 401);
+          }
+
   
         if (!token) return BaseResponse.customResponse(res, "Token is required", 0, 401);
         
