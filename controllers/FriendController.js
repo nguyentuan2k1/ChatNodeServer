@@ -179,10 +179,10 @@ exports.updateFriendStatus = async (req, res) => {
               friend_id: userId,
               urlImage: userInfo.urlImage,
               friendInfo : {
-                name : friendInfo.name,
-                urlImage : friendInfo.urlImage ?? "https://static.tuoitre.vn/tto/i/s626/2015/09/03/cho-meo-12-1441255605.jpg",
+                name : userInfo.name,
+                urlImage : userInfo.urlImage ?? "https://static.tuoitre.vn/tto/i/s626/2015/09/03/cho-meo-12-1441255605.jpg",
                 presence : true,
-                id: friendInfo.id,
+                id: userInfo.id,
               }
             }),
           }
