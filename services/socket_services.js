@@ -38,12 +38,12 @@ class SocketService {
                                         });
                                 }
 
-                                // if (presence) {
-                                //         _io.emit('updateUserPresence', {
-                                //                 user_id: currentUserId,
-                                //                 presence: true,
-                                //         });
-                                // }
+                                if (presence) {                                        
+                                        socket.emit('updateUserPresence', {
+                                                user_id: currentUserId,
+                                                presence: true,
+                                        });
+                                }
                         }
                 });
                 socket.on("sendActiveChat", async (data) => {
