@@ -10,6 +10,8 @@ const helper = require('../services/helper')
 class SocketService {
         connection(socket) {
                 socket.on("LoggedIn", async (data) => {
+                        console.log("đã log vào LoggedIn - 13");
+                        
                         let token           = data['access_token'];                                           
                         const currentUserId = await helper.getCurrentUserIdByToken(token);                        
                         
