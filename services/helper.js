@@ -30,10 +30,8 @@ class Helper {
 
     static async getCurrentUserIdByToken(token) {
         let userId = "";
-
-        const tokenData = token.split(' ')[1]; // 'Bearer TOKEN'
         
-        jwt.verify(tokenData, process.env.SECRET_KEY_JWT, (err, user) => {
+        jwt.verify(token, process.env.SECRET_KEY_JWT, (err, user) => {
         if (err) return false;
     
         userId = user.id;

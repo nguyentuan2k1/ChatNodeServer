@@ -11,7 +11,7 @@ class SocketService {
         connection(socket) {
                 socket.on("LoggedIn", async (data) => {                                                
                         let token           = data['access_token'];                                           
-                        const currentUserId = await helper.getCurrentUserIdByToken(token);                        
+                        const currentUserId = await helper.getCurrentUserIdByToken(token);                                             
                         
                         if (currentUserId) {
                                 const presence = await Presence.findOneAndUpdate(
