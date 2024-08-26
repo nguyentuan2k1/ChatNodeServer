@@ -36,7 +36,7 @@ class SocketService {
                                         });
                                 }
 
-                                if (presence) {                                        
+                                if (presence) {                             
                                         _io.emit("updateUserPresence",
                                                 {
                                                         "user_id": currentUserId,
