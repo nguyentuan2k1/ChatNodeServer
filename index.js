@@ -34,7 +34,6 @@ global.blacklistedTokens = new Set(); // In-memory blacklist
 
 io.on("connection", SocketService.connection);
 
-global.usersSocketID = new Map();
 global.usersID = new Map();
 global.usersRooms = new Map();
 

@@ -1,8 +1,20 @@
-class UserSocket {
-        constructor(socket, userID)
-        {
-                this.socket = socket;
-                this.userID = userID;
+const mongoose = require("mongoose");
+
+const UserSocket = new mongoose.Schema({
+        socket_id: {
+                type: String,
+                required: true,
+        },
+        user_id: {
+                type: String,
+                required: true,
+        },
+        time_stamp:{
+                type:Date,
+                required:true,
+                default:Date.now(),
         }
-}
-module.exports = UserSocket;
+}, { timeStamp: true }
+);
+
+module.exports = mongoose.model("usersockets", UserSocket);
