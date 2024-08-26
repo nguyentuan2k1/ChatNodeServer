@@ -9,9 +9,7 @@ const helper = require('../services/helper')
 
 class SocketService {
         connection(socket) {
-                socket.on("LoggedIn", async (data) => {
-                        console.log("đã log vào LoggedIn - 13");
-                        
+                socket.on("LoggedIn", async (data) => {                                                
                         let token           = data['access_token'];                                           
                         const currentUserId = await helper.getCurrentUserIdByToken(token);                        
                         
@@ -39,9 +37,10 @@ class SocketService {
                                 }
 
                                 if (presence) {                                        
-                                        socket.emit('updateUserPresence', {
-                                                user_id: currentUserId,
-                                                presence: true,
+                                        _io.emit("updateUserPresence",
+                                                {
+                                                        "user_id": currentUserId,
+                                                        "presence": true,
                                         });
                                 }
                         }
