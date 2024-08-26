@@ -8,7 +8,6 @@ class Helper {
     static async getInfoCurrentUser (req, res) {
         const authHeader = req.headers['authorization'];        
         
-        
         const token = authHeader && authHeader.split(' ')[1]; // 'Bearer TOKEN'
 
         if (blacklistedTokens.has(token)) {
@@ -22,6 +21,20 @@ class Helper {
         
         jwt.verify(token, process.env.SECRET_KEY_JWT, (err, user) => {
         if (err) return BaseResponse.customResponse(res, "Token is not valid", 0, 401);
+    
+        userId = user.id;
+        });
+
+        return userId;
+    }
+
+    static async getCurrentUserIdByToken(token) {
+        let userId = "";
+
+        const tokenData = token.split(' ')[1]; // 'Bearer TOKEN'
+        
+        jwt.verify(tokenData, process.env.SECRET_KEY_JWT, (err, user) => {
+        if (err) return false;
     
         userId = user.id;
         });

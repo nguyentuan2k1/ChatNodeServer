@@ -1,81 +1,48 @@
-const UserSocket = require("../models/UserSocket");
 const chatController = require("../controllers/chatController");
 const fcmService = require("../fcm/fcmService");
 const Presence = require("../models/Presence");
 const ChatMessage = require("../models/ChatMessages");
 const chatMessagesController = require("../controllers/chatMessagesController");
 let options = { returnDocument: 'after' };
+const UserSocket = require("../models/UserSocket");
+const helper = require('../services/helper')
+
 class SocketService {
         connection(socket) {
                 socket.on("LoggedIn", async (data) => {
-                        const presence = await Presence.findOneAndUpdate(
-                                { userID: data["userID"] }, {
-                                $set: {
-                                        presence: true,
-                                        presenceTimeStamp: Date.now()
-                                }
-                        }, options);
-
-                        usersSocketID.set(socket.id, new UserSocket(socket, data["userID"]));
+                        let token           = data['access_token'];                                           
+                        const currentUserId = await helper.getCurrentUserIdByToken(token);                        
                         
-                        const userID = usersID.get(data["userID"]);
-
-                        if (userID) {
-                                console.log("print userID");
-                                console.log(userID);
-                                const checkUserIDSocket = userID.socket.find(element => element.id == socket.id);
-                                if (!checkUserIDSocket) {
-                                        userID.socket.push(socket);
-                                }
-                                usersID.delete(data["userID"]);
-                                usersID.set(data["userID"], userID);
-                                console.log("look for check ");
-                                console.log(data["userID"]);
-                                usersID.get(data["userID"]);
-                        }
-                        else {
-                                usersID.set(data["userID"],
-                                        new UserSocket
-                                                (
-                                                        [socket], data["userID"]
-                                                )
+                        if (currentUserId) {
+                                const presence = await Presence.findOneAndUpdate(
+                                        { userID: currentUserId }, {
+                                        $set: {
+                                                presence: true,
+                                                presenceTimeStamp: Date.now()
+                                        }
+                                }, options);
+                                
+                                let userSocket = await UserSocket.findOne(
+                                        { user_id: currentUserId },
                                 );
-                        }
-                        if (presence) {
-                                const userRoom = usersRooms.get(data["userID"]);
-                                if (!userRoom) {
-                                        const listChat = await chatController.getChatsIDByUserID(data["userID"]);
-                                        const chats = [];
-                                        for (let index = 0; index < listChat.length; index++) {
-                                                const element = listChat[index];
-                                                chats.push(element.id);
-                                        }
-                                        if (chats.length == listChat.length) {
-                                                usersRooms.set(data["userID"], chats);
-                                                console.log("Rooms");
-                                                console.log(usersRooms);
-                                                socket.join(chats);
-                                                _io.to(chats).emit("userOnline", {
-                                                        "presence": presence
-                                                });
-                                        }
-                                }
-                                else {
-                                        console.log("check user Room logged in")
-                                        console.log(userRoom);
-                                        _io.to(userRoom).emit("userOnline", {
-                                                "presence": presence
+
+                                if (userSocket) {
+                                        userSocket.socket_id = socket.id;
+                                        userSocket.save();
+                                } else {
+                                        userSocket = await UserSocket.create({
+                                                user_id: currentUserId,
+                                                socket_id: socket.id
                                         });
                                 }
-                                const reloadData = data["requestReloadData"];
-                                if (reloadData == true) {
-                                        socket.emit("reload", {
-                                                "reloadData": reloadData
+
+                                if (presence) {
+                                        _io.emit('updateUserPresence', {
+                                                user_id: currentUserId,
+                                                presence: true,
                                         });
                                 }
                         }
-                        // console.log("userID");
-                        // console.log(usersID);
                 });
                 socket.on("sendActiveChat", async (data) => {
                         console.log("sendActiveChat");
@@ -136,51 +103,51 @@ class SocketService {
                                 }
                         }
                 });
-                socket.on('disconnect', async (data) => {
-                        const userSocket = usersSocketID.get(socket.id);
-                        if (userSocket) {
-                                let options = { returnDocument: 'after' };
-                                const presence = await Presence.findOneAndUpdate(
-                                        { userID: userSocket.userID },
-                                        {
-                                                $set:
-                                                {
-                                                        presence: false,
-                                                        presenceTimeStamp: Date.now()
-                                                }
-                                        },
-                                        options
-                                );
-                                const userID = usersID.get(userSocket.userID);
-                                console.log("print userID");
-                                console.log(userID);
-                                if (userID.socket.length > 1) {
-                                        const findIndex = userID.socket.findIndex(element => element.id == socket.id);
-                                        userID.socket.splice(findIndex, 1);
-                                        usersID.delete(userSocket.userID);
-                                        usersID.set(userSocket.userID,
-                                                userID
-                                        );
-                                }
-                                else {
-                                        if (presence) {
-                                                if (usersRooms.get(userSocket.userID)) {
-                                                        console.log("check room disconnected socket");
-                                                        console.log(usersRooms.get(userSocket.userID));
-                                                        _io.to(usersRooms.get(userSocket.userID)).emit("userDisconnected", {
-                                                                "presence": presence
-                                                        });
-                                                }
-                                        }
-                                        usersID.delete(userSocket.userID);
-                                        usersRooms.delete(userSocket.userID);
-                                }
-                                usersSocketID.delete(socket.id);
-                        }
-                        console.log(usersID);
-                        console.log(usersSocketID);
-                        console.log(usersRooms);
-                });
+                // socket.on('disconnect', async (data) => {
+                //         const userSocket = usersSocketID.get(socket.id);
+                //         if (userSocket) {
+                //                 let options = { returnDocument: 'after' };
+                //                 const presence = await Presence.findOneAndUpdate(
+                //                         { userID: userSocket.userID },
+                //                         {
+                //                                 $set:
+                //                                 {
+                //                                         presence: false,
+                //                                         presenceTimeStamp: Date.now()
+                //                                 }
+                //                         },
+                //                         options
+                //                 );
+                //                 const userID = usersID.get(userSocket.userID);
+                //                 console.log("print userID");
+                //                 console.log(userID);
+                //                 if (userID.socket.length > 1) {
+                //                         const findIndex = userID.socket.findIndex(element => element.id == socket.id);
+                //                         userID.socket.splice(findIndex, 1);
+                //                         usersID.delete(userSocket.userID);
+                //                         usersID.set(userSocket.userID,
+                //                                 userID
+                //                         );
+                //                 }
+                //                 else {
+                //                         if (presence) {
+                //                                 if (usersRooms.get(userSocket.userID)) {
+                //                                         console.log("check room disconnected socket");
+                //                                         console.log(usersRooms.get(userSocket.userID));
+                //                                         _io.to(usersRooms.get(userSocket.userID)).emit("userDisconnected", {
+                //                                                 "presence": presence
+                //                                         });
+                //                                 }
+                //                         }
+                //                         usersID.delete(userSocket.userID);
+                //                         usersRooms.delete(userSocket.userID);
+                //                 }
+                //                 usersSocketID.delete(socket.id);
+                //         }
+                //         console.log(usersID);
+                //         console.log(usersSocketID);
+                //         console.log(usersRooms);
+                // });
         }
 }
 module.exports = new SocketService(); 
