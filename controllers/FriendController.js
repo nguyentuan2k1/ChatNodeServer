@@ -195,6 +195,7 @@ exports.updateFriendStatus = async (req, res) => {
                 urlImage : userInfo.urlImage ?  userInfo.urlImage :"https://static.tuoitre.vn/tto/i/s626/2015/09/03/cho-meo-12-1441255605.jpg",
                 presence : precenseUserInfo ? precenseUserInfo.presence : false ,
                 id: userInfo.id,
+                presence_timestamp : precenseUserInfo.presenceTimeStamp
               }
             }),
           }
