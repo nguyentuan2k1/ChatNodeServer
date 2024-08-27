@@ -8,6 +8,7 @@ const helper = require('../services/helper')
 const Paginate     = require('../models/Pagination');
 const Chat = require('../models/Chat');
 const fcmService = require('../fcm/fcmService');
+const Presence = require('../models/Presence');
 
 dotenv.config();
 
@@ -41,13 +42,20 @@ exports.getFriends = async (req, res) => {
         if (keyword) userQuery = userQuery.where(queryConditions);
 
         let listFriend = await userQuery.exec();
+                
+        listFriend = await Promise.all(
+            listFriend.map(async (item) => {
+                const precenses = await Presence.findOne({ userID: item.id });
         
-        listFriend = listFriend.map(item => ({
-            name: item.name,
-            urlImage: item.urlImage ? item.urlImage : "https://static.tuoitre.vn/tto/i/s626/2015/09/03/cho-meo-12-1441255605.jpg",
-            presence : true,
-            id       : item.id,
-        }));
+                return {
+                    name: item.name,
+                    urlImage: item.urlImage || "https://static.tuoitre.vn/tto/i/s626/2015/09/03/cho-meo-12-1441255605.jpg",
+                    presence: precenses ? precenses.presence : false,
+                    id: item.id,
+                    presence_timestamp : precenses.presenceTimeStamp
+                };
+            })
+        );
 
         const {currentPage, total, totalPages} = getFriends;
 

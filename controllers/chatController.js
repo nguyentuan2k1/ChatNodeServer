@@ -2,7 +2,8 @@ const Chat = require("../models/Chat");
 const BaseResponse = require('../models/BaseResponse');
 const User = require('../models/User');
 const Paginate     = require('../models/Pagination');
-const helper = require('../services/helper')
+const helper = require('../services/helper');
+const Presence = require("../models/Presence");
 
 exports.getChat = async (chatID) => {
         return await Chat.findById(chatID);
@@ -20,7 +21,7 @@ exports.getChatsIDByUserID = async (req, res) => {
         for (let index = 0; index < listChat.length; index++) {
                 const element = listChat[index];
                 var findUserFriend;
-                if (element.users.length == 2) { // bằng 2 -> chat 1 : 1
+                if (element.users.length == 2) {
                         if (
                           element.users[0] == userID &&
                           element.users[1] == userID
@@ -31,14 +32,23 @@ exports.getChatsIDByUserID = async (req, res) => {
                             (element) => element != userID
                           );
                         }
-                } else { // chat > 2
+                } else { 
 
                 }
 
                 const userFriend = await User.findById(findUserFriend);
-                  
+                let   presence   = await Presence.findOne({userID: findUserFriend});                
                 
-                listChatUserAndPresence.push({name : userFriend.name, urlImage : userFriend.urlImage ? userFriend.urlImage : "https://static.tuoitre.vn/tto/i/s626/2015/09/03/cho-meo-12-1441255605.jpg" , presence : true, users : element.users, lastMessage : element.lastMessage, typeMessage : element.typeMessage, timeLastMessage : element.timeLastMessage});
+                listChatUserAndPresence.push({
+                        name : userFriend.name,
+                        urlImage : userFriend.urlImage ? userFriend.urlImage : "https://static.tuoitre.vn/tto/i/s626/2015/09/03/cho-meo-12-1441255605.jpg" ,
+                        presence : presence.presence,
+                        users : element.users,
+                        lastMessage : element.lastMessage,
+                        typeMessage : element.typeMessage,
+                        timeLastMessage : element.timeLastMessage,
+                        presence_timestamp : presence.presenceTimeStamp,
+                        });
         }
 
         const { currentPage,total, totalPages} = dataPaginate;

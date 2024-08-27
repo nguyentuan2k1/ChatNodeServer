@@ -13,6 +13,7 @@ const bcrypt = require('bcrypt');
 const saltRounds = 10;
 const secretKey = process.env.SECRET_KEY_JWT;
 const helper = require('../services/helper');
+const { now } = require('mongoose');
 
 async function getAccessToken(user) {
         if (user == null) return false;
@@ -407,8 +408,15 @@ exports.logout = async(req, res) => {
 
                 if (!token) return  BaseResponse.customResponse(res, "Token is required", 1, 401)
                 
-        
-                // Add token to blacklist
+                let userId = await helper.getInfoCurrentUser(req, res);
+
+                await Presence.findOneAndUpdate({ userID: userId }, {
+                        $set: {
+                                presence: false,
+                                presenceTimeStamp : Date.now(),
+                        }
+                }, options);
+
                 blacklistedTokens.add(token);
                 
                 return BaseResponse.customResponse(res, "Logout successfully", 1, 200, true)

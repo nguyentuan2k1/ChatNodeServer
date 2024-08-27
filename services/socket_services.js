@@ -9,14 +9,7 @@ const helper = require('../services/helper')
 
 class SocketService {
         connection(socket) {
-                socket.on('updateUserPresence', async (data) => {
-                        console.log("updateUserPresence");
-                        console.log(data);
-                });
-
-                socket.on("LoggedIn", async (data) => {
-                        console.log("LoggedIn");
-                                                                  
+                socket.on("LoggedIn", async (data) => {                                                                  
                         let token           = data['access_token'];                                           
                         const currentUserId = await helper.getCurrentUserIdByToken(token);
                         
@@ -44,10 +37,10 @@ class SocketService {
                                 }
 
                                 if (presence) {
-                                        _io.emit("updateUserPresence",
-                                                {
+                                        socket.broadcast.emit("updateUserPresence", {
                                                         "user_id": currentUserId,
                                                         "presence": true,
+                                                        "presence_timestamp" : presence.presenceTimeStamp,
                                         });
                                 }
                         }
@@ -111,51 +104,67 @@ class SocketService {
                                 }
                         }
                 });
+
                 // socket.on('disconnect', async (data) => {
-                //         const userSocket = usersSocketID.get(socket.id);
-                //         if (userSocket) {
-                //                 let options = { returnDocument: 'after' };
-                //                 const presence = await Presence.findOneAndUpdate(
-                //                         { userID: userSocket.userID },
-                //                         {
-                //                                 $set:
-                //                                 {
-                //                                         presence: false,
-                //                                         presenceTimeStamp: Date.now()
-                //                                 }
-                //                         },
-                //                         options
-                //                 );
-                //                 const userID = usersID.get(userSocket.userID);
-                //                 console.log("print userID");
-                //                 console.log(userID);
-                //                 if (userID.socket.length > 1) {
-                //                         const findIndex = userID.socket.findIndex(element => element.id == socket.id);
-                //                         userID.socket.splice(findIndex, 1);
-                //                         usersID.delete(userSocket.userID);
-                //                         usersID.set(userSocket.userID,
-                //                                 userID
-                //                         );
-                //                 }
-                //                 else {
-                //                         if (presence) {
-                //                                 if (usersRooms.get(userSocket.userID)) {
-                //                                         console.log("check room disconnected socket");
-                //                                         console.log(usersRooms.get(userSocket.userID));
-                //                                         _io.to(usersRooms.get(userSocket.userID)).emit("userDisconnected", {
-                //                                                 "presence": presence
-                //                                         });
-                //                                 }
-                //                         }
-                //                         usersID.delete(userSocket.userID);
-                //                         usersRooms.delete(userSocket.userID);
-                //                 }
-                //                 usersSocketID.delete(socket.id);
-                //         }
-                //         console.log(usersID);
-                //         console.log(usersSocketID);
-                //         console.log(usersRooms);
+                //         // const userSocket = usersSocketID.get(socket.id);
+                //         // if (userSocket) {
+                //         //         let options = { returnDocument: 'after' };
+                //         //         const presence = await Presence.findOneAndUpdate(
+                //         //                 { userID: userSocket.userID },
+                //         //                 {
+                //         //                         $set:
+                //         //                         {
+                //         //                                 presence: false,
+                //         //                                 presenceTimeStamp: Date.now()
+                //         //                         }
+                //         //                 },
+                //         //                 options
+                //         //         );
+                //         //         const userID = usersID.get(userSocket.userID);
+                //         //         console.log("print userID");
+                //         //         console.log(userID);
+                //         //         if (userID.socket.length > 1) {
+                //         //                 const findIndex = userID.socket.findIndex(element => element.id == socket.id);
+                //         //                 userID.socket.splice(findIndex, 1);
+                //         //                 usersID.delete(userSocket.userID);
+                //         //                 usersID.set(userSocket.userID,
+                //         //                         userID
+                //         //                 );
+                //         //         }
+                //         //         else {
+                //         //                 if (presence) {
+                //         //                         if (usersRooms.get(userSocket.userID)) {
+                //         //                                 console.log("check room disconnected socket");
+                //         //                                 console.log(usersRooms.get(userSocket.userID));
+                //         //                                 _io.to(usersRooms.get(userSocket.userID)).emit("userDisconnected", {
+                //         //                                         "presence": presence
+                //         //                                 });
+                //         //                         }
+                //         //                 }
+                //         //                 usersID.delete(userSocket.userID);
+                //         //                 usersRooms.delete(userSocket.userID);
+                //         //         }
+                //         //         usersSocketID.delete(socket.id);
+                //         // }
+                //         // console.log(usersID);
+                //         // console.log(usersSocketID);
+                //         // console.log(usersRooms);
                 // });
+
+                socket.on('disconnect', async (data) => {
+                        const userSocket = await UserSocket.findOne({socket : socket.id});
+
+                        if (!userSocket) return;
+
+                        const precense = Presence.findOne({userID : userSocket.user_id});
+
+                        socket.broadcast.emit("updateUserPresence",
+                                {
+                                        "user_id": currentUserId,
+                                        "presence": false,
+                                        "presence_timestamp" : precense.presenceTimeStamp,
+                                });
+                });
         }
 }
 module.exports = new SocketService(); 
