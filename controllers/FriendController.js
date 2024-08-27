@@ -177,6 +177,8 @@ exports.updateFriendStatus = async (req, res) => {
                 break;
         }
 
+        let precenseUserInfo = Presence.findOne({ userID: userInfo.id});
+
         await fcmService.sendNotification(
           friendInfo.deviceToken,
           titleNotification,
@@ -191,7 +193,7 @@ exports.updateFriendStatus = async (req, res) => {
               friend_info : {
                 name : userInfo.name,
                 urlImage : userInfo.urlImage ?  userInfo.urlImage :"https://static.tuoitre.vn/tto/i/s626/2015/09/03/cho-meo-12-1441255605.jpg",
-                presence : true,
+                presence : precenseUserInfo ? precenseUserInfo.presence : false ,
                 id: userInfo.id,
               }
             }),
