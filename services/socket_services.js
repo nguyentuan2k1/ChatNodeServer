@@ -160,7 +160,7 @@ class SocketService {
 
                         socket.broadcast.emit("updateUserPresence",
                                 {
-                                        "user_id": currentUserId,
+                                        "user_id": userSocket.user_id,
                                         "presence": false,
                                         "presence_timestamp" : precense.presenceTimeStamp,
                                 });
