@@ -159,7 +159,7 @@ class SocketService {
 
                         const precense = await Presence.findOne({userID : userSocket.user_id});
 
-                        socket.broadcast.emit("updateUserPresence",
+                        _io.emit("updateUserPresence",
                                 {
                                         "user_id": userSocket.user_id,
                                         "presence": false,

@@ -384,6 +384,9 @@ exports.logout = async(req, res) => {
                                 presenceTimeStamp : Date.now(),
                         }
                 }, options);
+                
+                console.log(userPresence);
+                
 
                 // blacklistedTokens.add(token);
                 
