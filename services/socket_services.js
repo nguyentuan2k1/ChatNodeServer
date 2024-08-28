@@ -9,6 +9,12 @@ const helper = require('../services/helper')
 
 class SocketService {
         connection(socket) {
+                socket.on('updateUserPresenceDisconnect', async (data) => {
+                        console.log("updateUserPresenceDisconnect");
+                        console.log(data);
+                        
+                });
+
                 socket.on("LoggedIn", async (data) => {                                                                  
                         let token           = data['access_token'];                                           
                         const currentUserId = await helper.getCurrentUserIdByToken(token);
@@ -159,7 +165,7 @@ class SocketService {
 
                         const precense = await Presence.findOne({userID : userSocket.user_id});
 
-                        _io.emit("updateUserPresence",
+                        _io.emit("updateUserPresenceDisconnect",
                                 {
                                         "user_id": userSocket.user_id,
                                         "presence": false,
