@@ -385,7 +385,7 @@ exports.logout = async(req, res) => {
                         }
                 }, options);
 
-                blacklistedTokens.add(token);
+                // blacklistedTokens.add(token);
                 
                 return BaseResponse.customResponse(res, "Logout successfully", 1, 200, true)
         } catch (err) {
