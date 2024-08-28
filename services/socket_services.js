@@ -152,17 +152,18 @@ class SocketService {
                 // });
 
                 socket.on('disconnect', async (data) => {
+                        console.log("disconnect socket: " + socket.id);
                         const userSocket = await UserSocket.findOne({socket : socket.id});
 
                         if (!userSocket) return;
 
-                        const precense = Presence.findOne({userID : userSocket.user_id});
+                        const precense = await Presence.findOne({userID : userSocket.user_id});
 
                         socket.broadcast.emit("updateUserPresence",
                                 {
                                         "user_id": userSocket.user_id,
                                         "presence": false,
-                                        "presence_timestamp" : precense.presenceTimeStamp,
+                                        "presence_timestamp" : precense.presenceTimeStamp ? precense.presenceTimeStamp : Date.now(),
                                 });
                 });
         }

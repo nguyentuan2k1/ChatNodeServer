@@ -273,21 +273,32 @@ exports.getUsers =  async (req, res) => {
         // 2 gửi yêu cầu 
         // 3 đã thêm
         // 4 đợi duyệt 
-        // 5 chặn 
+        // 5 chặn
 
-        data.forEach(user => {
-                let {name, id, urlImage} = user;                
-                let friend = listFriend.find(friend => friend.friendId == user.id );
-                let status = 1;
+        for (const user of data) {
+          let { name, id, urlImage } = user;
+          let friend = listFriend.find((friend) => friend.friendId == user.id);
+          let status = 1;
 
-                if (friend) status = friend.status;
+          if (friend) status = friend.status;
 
-                if (status == 5) return;
+          if (status == 5) continue;
 
-                urlImage = urlImage ? urlImage : "https://static.tuoitre.vn/tto/i/s626/2015/09/03/cho-meo-12-1441255605.jpg";
+          urlImage = urlImage
+            ? urlImage
+            : "https://static.tuoitre.vn/tto/i/s626/2015/09/03/cho-meo-12-1441255605.jpg";
 
-                dataItem.push({id, name, urlImage, status: status });
-        });
+          const precenses = await Presence.findOne({ userID: id });
+
+          dataItem.push({ 
+                        id,
+                        name,
+                        urlImage,
+                        status: status,
+                        presence : precenses ? precenses.presence : false,
+                        presence_timestamp : precenses.presenceTimeStamp ? precenses.presenceTimeStamp : Date.now()
+                        });
+        }
 
         return BaseResponse.customResponse(res, "", 1, 200, {
                 currentPage,

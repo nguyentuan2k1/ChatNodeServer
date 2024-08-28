@@ -9,8 +9,6 @@ router.post("/register", authController.register);
 router.post("/login", authController.login);
 //Login With Token
 router.post("/loginwithaccesstoken", authController.loginByToken);
-//Logout
-router.post("/logout", authController.logout);
 
 router.post("/loginwithgoogle", authController.loginByGoogle);
 

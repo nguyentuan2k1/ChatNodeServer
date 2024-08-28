@@ -13,7 +13,6 @@ const bcrypt = require('bcrypt');
 const saltRounds = 10;
 const secretKey = process.env.SECRET_KEY_JWT;
 const helper = require('../services/helper');
-const { now } = require('mongoose');
 
 async function getAccessToken(user) {
         if (user == null) return false;
@@ -48,37 +47,6 @@ async function getAccessToken(user) {
 
 function customResponse(res, message, status = 0, code = 200, data = null) {
         return BaseResponse.customResponse(res, message, status, code, data);
-}
-
-exports.logout = async (req, res) => {
-        try {
-                const user = await User.findById(req.body.userID);
-
-                if (!user) return customResponse(res, "User not Found", 0, 404);
-                
-                await AccessToken.deleteOne({
-                        userID: user.id
-                });
-
-                var presence = await Presence.findOneAndUpdate({ userID: user.id }, {
-                        $set: {
-                                presence: false,
-                                presenceTimeStamp: Date.now()
-                        }
-                }, options);
-
-                const userRooms = usersRooms.get(req.body.userID);
-
-                if (userRooms) {
-                        _io.to(userRooms).emit("userLoggedOut", {
-                                "presence": presence
-                        });
-                }
-                return 
-
-        } catch (err) {
-                return customResponse(res, "Logout failed", 0, 500);
-        }
 }
 
 exports.loginByToken = async (req, res) => {
@@ -407,10 +375,10 @@ exports.logout = async(req, res) => {
                 const token = req.headers.authorization?.split(' ')[1];
 
                 if (!token) return  BaseResponse.customResponse(res, "Token is required", 1, 401)
-                
+                     
                 let userId = await helper.getInfoCurrentUser(req, res);
 
-                await Presence.findOneAndUpdate({ userID: userId }, {
+                const userPresence = await Presence.findOneAndUpdate({ userID: userId }, {
                         $set: {
                                 presence: false,
                                 presenceTimeStamp : Date.now(),
