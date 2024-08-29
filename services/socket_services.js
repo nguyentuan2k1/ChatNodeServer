@@ -9,7 +9,7 @@ const helper = require('../services/helper')
 
 class SocketService {
         connection(socket) {
-                socket.on("LoggedIn", async (data) => {                                                                  
+                socket.on("LoggedIn", async (data) => {                                                        
                         let token           = data['access_token'];                                           
                         const currentUserId = await helper.getCurrentUserIdByToken(token);
                         
@@ -167,6 +167,10 @@ class SocketService {
                 });
 
                 socket.on('reconnect', async(data) => {
+                        console.log("reconnect");
+                        
+                        console.log(socket.id);
+                        
                         let token           = data['access_token'];                                           
                         const currentUserId = await helper.getCurrentUserIdByToken(token);
 
@@ -194,6 +198,8 @@ class SocketService {
                                 }
 
                                 if (presence) {
+                                        console.log("updateUserPresence rennect");
+                                        
                                         socket.broadcast.emit("updateUserPresence", {
                                                         "user_id": currentUserId,
                                                         "presence": true,
