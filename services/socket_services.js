@@ -9,12 +9,6 @@ const helper = require('../services/helper')
 
 class SocketService {
         connection(socket) {
-                socket.on('updateUserPresenceDisconnect', async (data) => {
-                        console.log("updateUserPresenceDisconnect");
-                        console.log(data);
-                        
-                });
-
                 socket.on("LoggedIn", async (data) => {                                                                  
                         let token           = data['access_token'];                                           
                         const currentUserId = await helper.getCurrentUserIdByToken(token);
@@ -158,14 +152,10 @@ class SocketService {
                 // });
 
                 socket.on('disconnect', async (data) => {
-                        console.log("disconnect socket: " + socket.id);
                         const userSocket = await UserSocket.findOne({socket_id : socket.id});
-                        
-                        console.log("userSocket: " + userSocket);
-                        
+                                                
                         if (!userSocket) return;
                         
-
                         const precense = await Presence.findOne({userID : userSocket.user_id});
 
                         socket.broadcast.emit("updateUserPresenceDisconnect",
@@ -174,6 +164,43 @@ class SocketService {
                                         "presence": false,
                                         "presence_timestamp" : precense.presenceTimeStamp ? precense.presenceTimeStamp : Date.now(),
                                 });
+                });
+
+                socket.on('reconnect', async(data) => {
+                        let token           = data['access_token'];                                           
+                        const currentUserId = await helper.getCurrentUserIdByToken(token);
+
+                        if (currentUserId) {
+                                const presence = await Presence.findOneAndUpdate(
+                                        { userID: currentUserId }, {
+                                        $set: {
+                                                presence: true,
+                                                presenceTimeStamp: Date.now()
+                                        }
+                                }, options);
+                                
+                                let userSocket = await UserSocket.findOne(
+                                        { user_id: currentUserId },
+                                );
+
+                                if (userSocket) {
+                                        userSocket.socket_id = socket.id;
+                                        userSocket.save();
+                                } else {
+                                        userSocket = await UserSocket.create({
+                                                user_id: currentUserId,
+                                                socket_id: socket.id
+                                        });
+                                }
+
+                                if (presence) {
+                                        socket.broadcast.emit("updateUserPresence", {
+                                                        "user_id": currentUserId,
+                                                        "presence": true,
+                                                        "presence_timestamp" : presence.presenceTimeStamp,
+                                        });
+                                }
+                        }
                 });
         }
 }
