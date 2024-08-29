@@ -159,13 +159,16 @@ class SocketService {
 
                 socket.on('disconnect', async (data) => {
                         console.log("disconnect socket: " + socket.id);
-                        const userSocket = await UserSocket.findOne({socket : socket.id});
-
+                        const userSocket = await UserSocket.findOne({socket_id : socket.id});
+                        
+                        console.log("userSocket: " + userSocket);
+                        
                         if (!userSocket) return;
+                        
 
                         const precense = await Presence.findOne({userID : userSocket.user_id});
 
-                        _io.emit("updateUserPresenceDisconnect",
+                        socket.broadcast.emit("updateUserPresenceDisconnect",
                                 {
                                         "user_id": userSocket.user_id,
                                         "presence": false,
