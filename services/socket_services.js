@@ -152,6 +152,8 @@ class SocketService {
                 // });
 
                 socket.on('disconnect', async (data) => {
+                        console.log("disconect" + socket.id);
+                        
                         const userSocket = await UserSocket.findOne({socket_id : socket.id});
                                                 
                         if (!userSocket) return;
