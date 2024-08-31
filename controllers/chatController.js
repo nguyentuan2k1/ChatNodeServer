@@ -4,6 +4,7 @@ const User = require('../models/User');
 const Paginate     = require('../models/Pagination');
 const helper = require('../services/helper');
 const Presence = require("../models/Presence");
+const Joi = require('joi');
 
 exports.getChat = async (chatID) => {
         return await Chat.findById(chatID);
@@ -82,4 +83,36 @@ exports.updateActiveChat = async (chatID) => {
                                 active : true
                         }
                 }, options);
+}
+
+exports.takeRoomChat = async (req, res) => {
+        let {room_id, type, list_user_id} = req.body;
+
+        const schema = Joi.object({
+                type: Joi.string().valid('personal', 'group').required(),
+                list_user_id: Joi.array().items(Joi.string()).required(),
+        });
+
+        const { error } = schema.validate(req.body);
+
+        if (error) return BaseResponse.customResponse(res, error.details[0].message, 0, 400, null);
+        
+        let currentUserId = await helper.getInfoCurrentUser(req, res);
+        let room;
+
+        if (room_id) {
+                room = await Chat.findById(room_id);
+
+                if (!room) return BaseResponse.customResponse(res, "Room not found", 0, 404, null);
+        } else {
+                if (type == "personal") {
+                        room = await Chat.findOne({users: { $all: [currentUserId, ...list_user_id] }, type: type});
+
+                        if (!room) room = await Chat.create({users: [currentUserId, ...list_user_id], type: type, lastMessage: "", timeLastMessage: new Date(), userIDLastMessage: ""});
+                } else {
+                        room = await Chat.create({users: [currentUserId, ...list_user_id], type: type, lastMessage: "", timeLastMessage: new Date(), userIDLastMessage: ""});
+                }
+        }
+
+        return BaseResponse.customResponse(res, "", 1, 200, room);
 }

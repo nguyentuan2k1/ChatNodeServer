@@ -7,26 +7,18 @@ const ChatSchema = new mongoose.Schema({
         },
         lastMessage: {
                 type: String,
-                required: true,
         },
         userIDLastMessage:{
                 type:String,
-                required:true,
-                default: ""
         },
         timeLastMessage:{
                 type: Date,
                 required: true, 
         },
-        active: {
-                type: Boolean,
-                default: false, 
-        },
-        typeMessage: {
-                type:String,
-                required:true,
-                default: "text"
-        },
+        type: {
+                type: String,
+                required: true,
+        }
 }, { timestamps: true }
 );
 
