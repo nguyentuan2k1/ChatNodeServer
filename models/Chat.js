@@ -18,6 +18,14 @@ const ChatSchema = new mongoose.Schema({
         type: {
                 type: String,
                 required: true,
+        },
+        urlImage: {
+                type: String,
+                default: "",
+        },
+        nameChat: {
+                Stype: String,
+                default: "",
         }
 }, { timestamps: true }
 );

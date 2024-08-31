@@ -20,11 +20,29 @@ exports.getChatsIDByUserID = async (req, res) => {
         var listChatUserAndPresence = [];
 
         for (let index = 0; index < listChat.length; index++) {
-                let room = listChat[index].toObject();
+                let room = listChat[index];
+
+                room = room.toObject();
 
                 let userLastMessage = await User.findById(room.userIDLastMessage ? room.userIDLastMessage : null);      
 
-                room.nameLastMessage = userLastMessage ? userLastMessage.name : "";
+                room.userNameLastMessage = userLastMessage ? userLastMessage.name : "";
+
+                if (room.type == "personal") {
+                        let itemUSer;
+
+                        if (room.users[0] == room.users[1]) {
+                                itemUSer = room.users[0];
+                        } else {
+                                itemUSer = room.users.find(element => element != userID);
+                        }
+
+                        let user = await User.findById(itemUSer);
+
+                        room.urlImage = user.urlImage ? user.urlImage : "https://static.tuoitre.vn/tto/i/s626/2015/09/03/cho-meo-12-1441255605.jpg"     ;
+                        room.nameChat = user.name;
+                }
+
 
                 for (let index = 0; index < room.users.length; index++) {
                         let presence = await Presence.findOne({userID: room.users[index]});
@@ -32,7 +50,7 @@ exports.getChatsIDByUserID = async (req, res) => {
                         room.users[index] = {
                                 userID: room.users[index],
                                 presence: presence.presence,
-                                presenceTimeStamp: presence.presenceTimeStamp
+                                presenceTimeStamp: presence.presenceTimeStamp   
                         };
                 }
 
@@ -101,6 +119,23 @@ exports.takeRoomChat = async (req, res) => {
                 }
         }
 
+        room = room.toObject();
+
+        if (room.type == "personal") {
+                let userId;
+
+                if (room.users[0] == room.users[1]) {
+                        userId = room.users[0];
+                } else {
+                        userId = room.users.find(element => element != currentUserId);
+                }
+
+                let user = await User.findById(userId);
+
+                room.urlImage = user.urlImage ? user.urlImage : "https://static.tuoitre.vn/tto/i/s626/2015/09/03/cho-meo-12-1441255605.jpg";
+                room.nameChat = user.name;
+        }
+
         for (let index = 0; index < room.users.length; index++) {
                 let presence = await Presence.findOne({userID: room.users[index]});
 
@@ -111,11 +146,9 @@ exports.takeRoomChat = async (req, res) => {
                 };
         }
 
-        let roomData = room.toObject();
+        let userLastMessage = await User.findById(room.userIDLastMessage ? room.userIDLastMessage : null);      
 
-        let userLastMessage = await User.findById(roomData.userIDLastMessage ? roomData.userIDLastMessage : null);      
+        room.userNameLastMessage = userLastMessage ? userLastMessage.name : "";
 
-        roomData.nameLastMessage = userLastMessage ? userLastMessage.name : "";
-
-        return BaseResponse.customResponse(res, "", 1, 200, roomData);
+        return BaseResponse.customResponse(res, "", 1, 200, room);
 }
