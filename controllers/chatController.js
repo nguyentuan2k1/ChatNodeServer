@@ -20,36 +20,23 @@ exports.getChatsIDByUserID = async (req, res) => {
         var listChatUserAndPresence = [];
 
         for (let index = 0; index < listChat.length; index++) {
-                const element = listChat[index];
-                var findUserFriend;
-                if (element.users.length == 2) {
-                        if (
-                          element.users[0] == userID &&
-                          element.users[1] == userID
-                        ) {
-                          findUserFriend = userID;
-                        } else {
-                          findUserFriend = element.users.find(
-                            (element) => element != userID
-                          );
-                        }
-                } else { 
+                let room = listChat[index].toObject();
 
+                let userLastMessage = await User.findById(room.userIDLastMessage ? room.userIDLastMessage : null);      
+
+                room.nameLastMessage = userLastMessage ? userLastMessage.name : "";
+
+                for (let index = 0; index < room.users.length; index++) {
+                        let presence = await Presence.findOne({userID: room.users[index]});
+
+                        room.users[index] = {
+                                userID: room.users[index],
+                                presence: presence.presence,
+                                presenceTimeStamp: presence.presenceTimeStamp
+                        };
                 }
 
-                const userFriend = await User.findById(findUserFriend);
-                let   presence   = await Presence.findOne({userID: findUserFriend});                
-                
-                listChatUserAndPresence.push({
-                        name : userFriend.name,
-                        urlImage : userFriend.urlImage ? userFriend.urlImage : "https://static.tuoitre.vn/tto/i/s626/2015/09/03/cho-meo-12-1441255605.jpg" ,
-                        presence : presence.presence,
-                        users : element.users,
-                        lastMessage : element.lastMessage,
-                        typeMessage : element.typeMessage,
-                        timeLastMessage : element.timeLastMessage,
-                        presence_timestamp : presence.presenceTimeStamp,
-                        });
+                listChatUserAndPresence.push(room);
         }
 
         const { currentPage,total, totalPages} = dataPaginate;
@@ -114,5 +101,21 @@ exports.takeRoomChat = async (req, res) => {
                 }
         }
 
-        return BaseResponse.customResponse(res, "", 1, 200, room);
+        for (let index = 0; index < room.users.length; index++) {
+                let presence = await Presence.findOne({userID: room.users[index]});
+
+                room.users[index] = {
+                        userID: room.users[index],
+                        presence: presence.presence,
+                        presenceTimeStamp: presence.presenceTimeStamp
+                };
+        }
+
+        let roomData = room.toObject();
+
+        let userLastMessage = await User.findById(roomData.userIDLastMessage ? roomData.userIDLastMessage : null);      
+
+        roomData.nameLastMessage = userLastMessage ? userLastMessage.name : "";
+
+        return BaseResponse.customResponse(res, "", 1, 200, roomData);
 }
