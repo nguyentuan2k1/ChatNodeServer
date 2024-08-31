@@ -253,6 +253,8 @@ const getPresenceByUserID = async (userID) => {
 exports.getUsers =  async (req, res) => {        
         let userId = await helper.getInfoCurrentUser(req, res);
 
+        if (!userId) return  BaseResponse.customResponse(res, "Token is invalid", 0, 401)
+
         const {page = 1, pageSize = 15, keyword} = req.query;
 
         if (userId.statusCode == 401) return BaseResponse.customResponse(res, "Unauthorized", 0 , 401);

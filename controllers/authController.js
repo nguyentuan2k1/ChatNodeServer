@@ -359,7 +359,9 @@ exports.refreshDeviceToken = async(req, res) => {
                 const deviceToken = req.body.device_token;
                 let userId        = await helper.getInfoCurrentUser(req, res);
 
-                User.findOneAndUpdate({userID : userId}, {deviceToken: deviceToken });
+                if (!userId) return  BaseResponse.customResponse(res, "Token is invalid", 0, 401)
+
+                await User.findOneAndUpdate({userID : userId}, {deviceToken: deviceToken });
                 
                 return BaseResponse.customResponse(res, "update successfully", 1, 200, {
                         user_id : userId,
@@ -374,22 +376,20 @@ exports.logout = async(req, res) => {
         try {
                 const token = req.headers.authorization?.split(' ')[1];
 
-                if (!token) return  BaseResponse.customResponse(res, "Token is required", 1, 401)
+                if (!token) return  BaseResponse.customResponse(res, "Token is required", 0, 401)
                      
                 let userId = await helper.getInfoCurrentUser(req, res);
 
-                const userPresence = await Presence.findOneAndUpdate({ userID: userId }, {
+                if (!userId) return  BaseResponse.customResponse(res, "Token is invalid", 0, 401)
+                
+                await Presence.findOneAndUpdate({ userID: userId }, {
                         $set: {
                                 presence: false,
                                 presenceTimeStamp : Date.now(),
                         }
                 }, options);
                 
-                console.log(userPresence);
-                
-
-                // blacklistedTokens.add(token);
-                
+                helper.blacklistToken(token);
                 return BaseResponse.customResponse(res, "Logout successfully", 1, 200, true)
         } catch (err) {
                 return BaseResponse.customResponse(res, err.toString(), 0, 500)

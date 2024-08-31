@@ -13,7 +13,12 @@ exports.getChat = async (chatID) => {
 exports.getChatsIDByUserID = async (req, res) => {
         const {page = 1, pageSize = 15 } = req.query;
 
-        let userID       = await helper.getInfoCurrentUser(req, res);        
+        let userID = await helper.getInfoCurrentUser(req, res);
+
+        if (!userID) {
+                return BaseResponse.customResponse(res, "Unauthorized", 0, 401, null);
+        }
+
         let dataPaginate = await Paginate.paginate(Chat.find({users: { $in: userID }}), Chat.find({users: { $in: userID }}), parseInt(page) , parseInt(pageSize));
         let listChat     = dataPaginate.data;
         
@@ -103,6 +108,11 @@ exports.takeRoomChat = async (req, res) => {
         if (error) return BaseResponse.customResponse(res, error.details[0].message, 0, 400, null);
         
         let currentUserId = await helper.getInfoCurrentUser(req, res);
+        
+        if (!currentUserId) {
+                return BaseResponse.customResponse(res, "Unauthorized", 0, 401, null);
+        }
+
         let room;
 
         if (room_id) {
@@ -152,3 +162,17 @@ exports.takeRoomChat = async (req, res) => {
 
         return BaseResponse.customResponse(res, "", 1, 200, room);
 }
+
+exports.logout = async (req, res) => {
+    const authHeader = req.headers['authorization'];
+    const token = authHeader && authHeader.split(' ')[1];
+
+    if (!token) {
+        return BaseResponse.customResponse(res, "No token provided", 0, 400, null);
+    }
+
+    // Blacklist the token
+    helper.blacklistToken(token);
+
+    return BaseResponse.customResponse(res, "Logged out successfully", 1, 200, null);
+};

@@ -16,6 +16,8 @@ exports.getFriends = async (req, res) => {
     try {        
         let userId = await helper.getInfoCurrentUser(req, res);
 
+        if (!userId) return  BaseResponse.customResponse(res, "Token is invalid", 0, 401)
+
         const { keyword, page = 1, pageSize = 15, exceptFriendIds } = req.query;
 
         let queryConditions = {};
@@ -74,6 +76,9 @@ exports.getFriends = async (req, res) => {
 exports.addFriend = async (req, res) => {
     try {
         let userId      = await helper.getInfoCurrentUser(req, res);
+
+        if (!userId) return  BaseResponse.customResponse(res, "Token is invalid", 0, 401)
+
         let {friend_id} = req.body;
         const query     = { userID: userId, friendId: friend_id }; 
         const update    = { $setOnInsert: { userID: userId, friendId: friend_id } };
@@ -107,6 +112,9 @@ exports.addFriend = async (req, res) => {
 exports.updateFriendStatus = async (req, res) => {
     try {
         let userId              = await helper.getInfoCurrentUser(req, res);
+
+        if (!userId) return  BaseResponse.customResponse(res, "Token is invalid", 0, 401)
+
         let {friend_id, status} = req.body;
 
         let statusSender = 1 ;
