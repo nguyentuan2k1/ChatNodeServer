@@ -45,6 +45,23 @@ class SocketService {
                                 }
                         }
                 });
+
+                socket.on('joinRoom', async (data) => {
+                        socket.join(data["chatID"]);
+                });
+
+                socket.on("leaveRoom", async (data) => {
+                        socket.leave(data["chatID"]);
+                });
+
+                socket.on('sendMessage', async (data) => {
+                        socket.to(data["chatID"]).emit("receiveMessage", data["message"]);
+                        // thời gian gửi tin nhắn
+                        // ảnh của user gửi
+                        // tên người gửi
+                        // id user gửi
+                });
+
                 socket.on("sendActiveChat", async (data) => {
                         console.log("sendActiveChat");
                         console.log(data["chatID"]);
@@ -104,52 +121,6 @@ class SocketService {
                                 }
                         }
                 });
-
-                // socket.on('disconnect', async (data) => {
-                //         // const userSocket = usersSocketID.get(socket.id);
-                //         // if (userSocket) {
-                //         //         let options = { returnDocument: 'after' };
-                //         //         const presence = await Presence.findOneAndUpdate(
-                //         //                 { userID: userSocket.userID },
-                //         //                 {
-                //         //                         $set:
-                //         //                         {
-                //         //                                 presence: false,
-                //         //                                 presenceTimeStamp: Date.now()
-                //         //                         }
-                //         //                 },
-                //         //                 options
-                //         //         );
-                //         //         const userID = usersID.get(userSocket.userID);
-                //         //         console.log("print userID");
-                //         //         console.log(userID);
-                //         //         if (userID.socket.length > 1) {
-                //         //                 const findIndex = userID.socket.findIndex(element => element.id == socket.id);
-                //         //                 userID.socket.splice(findIndex, 1);
-                //         //                 usersID.delete(userSocket.userID);
-                //         //                 usersID.set(userSocket.userID,
-                //         //                         userID
-                //         //                 );
-                //         //         }
-                //         //         else {
-                //         //                 if (presence) {
-                //         //                         if (usersRooms.get(userSocket.userID)) {
-                //         //                                 console.log("check room disconnected socket");
-                //         //                                 console.log(usersRooms.get(userSocket.userID));
-                //         //                                 _io.to(usersRooms.get(userSocket.userID)).emit("userDisconnected", {
-                //         //                                         "presence": presence
-                //         //                                 });
-                //         //                         }
-                //         //                 }
-                //         //                 usersID.delete(userSocket.userID);
-                //         //                 usersRooms.delete(userSocket.userID);
-                //         //         }
-                //         //         usersSocketID.delete(socket.id);
-                //         // }
-                //         // console.log(usersID);
-                //         // console.log(usersSocketID);
-                //         // console.log(usersRooms);
-                // });
 
                 socket.on('disconnect', async (data) => {
                         console.log("disconect" + socket.id);
