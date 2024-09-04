@@ -167,7 +167,7 @@ exports.takeRoomChat = async (req, res) => {
 
         let messageOfRoom = await ChatMessages.find(
             { roomID: room._id },
-            { userID: 1, message: 1, stampTimeMessage: 1, _id: 0 } // Only select these fields
+            { userID: 1, message: 1, stampTimeMessage: 1, _id: 0, messageStatus: 1 } // Only select these fields
         )
         .sort({ stampTimeMessage: -1 }) // Sort by stampTimeMessage instead of createdAt
         .limit(pageSizeMessage);
