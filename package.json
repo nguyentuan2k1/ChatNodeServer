@@ -18,7 +18,8 @@
   "description": "Chat Server Socket",
   "main": "index.js",
   "scripts": {
-    "start": "nodemon index.js"
+    "start": "node index.js",
+    "build": "echo 'No build script specified' && exit 0"
   },
   "author": "",
   "license": "ISC"
