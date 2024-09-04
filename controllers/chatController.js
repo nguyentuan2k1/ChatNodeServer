@@ -5,6 +5,7 @@ const Paginate     = require('../models/Pagination');
 const helper = require('../services/helper');
 const Presence = require("../models/Presence");
 const Joi = require('joi');
+const ChatMessages = require('../models/ChatMessages');
 
 exports.getChat = async (chatID) => {
         return await Chat.findById(chatID);
@@ -96,11 +97,13 @@ exports.updateActiveChat = async (chatID) => {
 }
 
 exports.takeRoomChat = async (req, res) => {
-        let {room_id, type, list_user_id} = req.body;
+        let {room_id, type, list_user_id, page_size_message = 20} = req.body;
 
         const schema = Joi.object({
                 type: Joi.string().valid('personal', 'group').required(),
                 list_user_id: Joi.array().items(Joi.string()).required(),
+                page_size_message: Joi.number().default(20),
+                room_id: Joi.number(),
         });
 
         const { error } = schema.validate(req.body);
@@ -159,6 +162,34 @@ exports.takeRoomChat = async (req, res) => {
         let userLastMessage = await User.findById(room.userIDLastMessage ? room.userIDLastMessage : null);      
 
         room.userNameLastMessage = userLastMessage ? userLastMessage.name : "";
+
+        const pageSizeMessage = parseInt(page_size_message) || 20;
+
+        let messageOfRoom = await ChatMessages.find(
+            { roomID: room._id },
+            { userID: 1, message: 1, stampTimeMessage: 1, _id: 0 } // Only select these fields
+        )
+        .sort({ stampTimeMessage: -1 }) // Sort by stampTimeMessage instead of createdAt
+        .limit(pageSizeMessage);
+
+        const userIds = [...new Set(messageOfRoom.map(msg => msg.userID))];
+
+        const users = await User.find(
+            { _id: { $in: userIds } },
+            { _id: 1, urlImage: 1 }
+        );
+
+        const userAvatarMap = users.reduce((map, user) => {
+            map[user._id.toString()] = user.urlImage || "https://static.tuoitre.vn/tto/i/s626/2015/09/03/cho-meo-12-1441255605.jpg";
+            return map;
+        }, {});
+
+        messageOfRoom = messageOfRoom.map(msg => ({
+            ...msg.toObject(),
+            avatar: userAvatarMap[msg.userID.toString()]
+        }));
+
+        room.messages = messageOfRoom;
 
         return BaseResponse.customResponse(res, "", 1, 200, room);
 }

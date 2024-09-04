@@ -16,4 +16,6 @@ router.post('/refresh-device-token', authController.refreshDeviceToken);
 
 router.get('/logout', authController.logout);
 
+router.post('/refresh-token', authController.refreshToken);
+
 module.exports = router;

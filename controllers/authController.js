@@ -13,37 +13,35 @@ const bcrypt = require('bcrypt');
 const saltRounds = 10;
 const secretKey = process.env.SECRET_KEY_JWT;
 const helper = require('../services/helper');
+const Chat = require('../models/Chat'); // Đảm bảo import model Chat
+const Message = require('../models/Message'); // Đảm bảo import model Message
 
-async function getAccessToken(user) {
-        if (user == null) return false;
+async function getTokens(user) {
+    if (user == null) return false;
 
-        let userid = "";
+    let userid = typeof user === 'object' ? user.id : user;
 
-        if (typeof user === 'object') {
-                userid = user.id;
-        } else if (typeof user == 'number') {
-                userid = user;
-        }
+    const accessToken = jwt.sign({ id: userid }, secretKey, { expiresIn: '1h' });
+    const refreshToken = jwt.sign({ id: userid }, secretKey, { expiresIn: '7d' });
 
-        var accessToken = jwt.sign({ id: user.id }, secretKey);
+    const expiredTime = Date.now() + 1000 * 60 * 60;
+    const refreshExpiredTime = Date.now() + 1000 * 60 * 60 * 24 * 7;
 
-        var checkAccess = await AccessToken.findOne({
-                userID: userid
-        });
+    const tokenPair = new AccessToken({
+        accessToken,
+        refreshToken,
+        userID: userid,
+        expiredTime,
+        refreshExpiredTime,
+        active: true
+    });
 
-        if (checkAccess != null) {
-                accessToken = checkAccess.accessToken;
-        } else {
-                const access = new AccessToken({
-                        accessToken: accessToken,
-                        userID: userid
-                });
-                await access.save();
-                checkAccess = access;
-        }
+    await tokenPair.save();
 
-        return checkAccess;
+    return tokenPair;
 }
+
+
 
 function customResponse(res, message, status = 0, code = 200, data = null) {
         return BaseResponse.customResponse(res, message, status, code, data);
@@ -199,7 +197,7 @@ exports.login = async (req, res) => {
 
                 if (!checkPassword) return customResponse(res, "User or password is not right . Please try again", 0, 401);
 
-                var {accessToken} = await getAccessToken(user);
+                const {accessToken, refreshToken} = await getTokens(user);
 
                 const updatePresence = await Presence.findOneAndUpdate({ userID: user.id }, {
                         $set: {
@@ -211,7 +209,8 @@ exports.login = async (req, res) => {
                 const { presenceTimeStamp } = updatePresence;
 
                 return customResponse(res, "Login successfully", 1, 200, {
-                        accessToken: accessToken,
+                        accessToken,
+                        refreshToken,
                         email,
                         name,
                         isDarkMode,
@@ -373,25 +372,134 @@ exports.refreshDeviceToken = async(req, res) => {
 }
 
 exports.logout = async(req, res) => {
-        try {
-                const token = req.headers.authorization?.split(' ')[1];
+    try {
+        const token = req.headers.authorization?.split(' ')[1];
 
-                if (!token) return  BaseResponse.customResponse(res, "Token is required", 0, 401)
-                     
-                let userId = await helper.getInfoCurrentUser(req, res);
+        if (!token) return BaseResponse.customResponse(res, "Token is required", 0, 401);
+             
+        let userId = await helper.getInfoCurrentUser(req, res);
 
-                if (!userId) return  BaseResponse.customResponse(res, "Token is invalid", 0, 401)
-                
-                await Presence.findOneAndUpdate({ userID: userId }, {
-                        $set: {
-                                presence: false,
-                                presenceTimeStamp : Date.now(),
-                        }
-                }, options);
-                
-                helper.blacklistToken(token);
-                return BaseResponse.customResponse(res, "Logout successfully", 1, 200, true)
-        } catch (err) {
-                return BaseResponse.customResponse(res, err.toString(), 0, 500)
+        if (!userId) return BaseResponse.customResponse(res, "Token is invalid", 0, 401);
+        
+        // Vô hiệu hóa token hiện tại
+        await AccessToken.findOneAndUpdate(
+            { accessToken: token },
+            { $set: { active: false } }
+        );
+
+        await Presence.findOneAndUpdate(
+            { userID: userId },
+            {
+                $set: {
+                    presence: false,
+                    presenceTimeStamp: Date.now(),
+                }
+            },
+            options
+        );
+        
+        return BaseResponse.customResponse(res, "Logout successfully", 1, 200, true);
+    } catch (err) {
+        return BaseResponse.customResponse(res, err.toString(), 0, 500);
+    }
+}
+
+exports.refreshToken = async (req, res) => {
+    try {
+        const { refreshToken, pageSizeMessage } = req.body;
+
+        if (!refreshToken) {
+            return customResponse(res, "Refresh token is required", 0, 400);
         }
+
+        const tokenPair = await AccessToken.findOne({ refreshToken, active: true });
+        if (!tokenPair) {
+            return customResponse(res, "Invalid refresh token", 0, 401);
+        }
+
+        if (tokenPair.refreshExpiredTime < Date.now()) {
+            tokenPair.active = false;
+            await tokenPair.save();
+            return customResponse(res, "Refresh token has expired", 0, 401);
+        }
+
+        // Tạo access token mới
+        const newAccessToken = jwt.sign({ id: tokenPair.userID }, secretKey, { expiresIn: '1h' });
+        const newAccessExpiredTime = Date.now() + 1000 * 60 * 60; // 1 hour
+
+        // Cập nhật thời gian hết hạn của refresh token
+        const newRefreshExpiredTime = Date.now() + 1000 * 60 * 60 * 24 * 7; // 7 days
+
+        // Cập nhật token pair hiện có
+        tokenPair.accessToken = newAccessToken;
+        tokenPair.expiredTime = newAccessExpiredTime;
+        tokenPair.refreshExpiredTime = newRefreshExpiredTime;
+        await tokenPair.save();
+
+        // Lấy danh sách phòng chat của user
+        const chats = await Chat.find({ users: tokenPair.userID });
+
+        // Lấy tin nhắn cho mỗi phòng chat
+        const chatsWithMessages = await Promise.all(chats.map(async (chat) => {
+            const messages = await Message.find({ chatID: chat._id })
+                .sort({ createdAt: -1 })
+                .limit(parseInt(pageSizeMessage) || 20); // Mặc định là 20 nếu không có pageSizeMessage
+
+            return {
+                ...chat.toObject(),
+                messages: messages.reverse() // Đảo ngược để có thứ tự từ cũ đến mới
+            };
+        }));
+
+        return customResponse(res, "Token refreshed successfully", 1, 200, {
+            accessToken: newAccessToken,
+            refreshToken: refreshToken,
+            refreshExpiredTime: newRefreshExpiredTime,
+            chats: chatsWithMessages
+        });
+
+    } catch (err) {
+        return customResponse(res, err.toString(), 0, 500);
+    }
+}
+
+exports.revokeToken = async (req, res) => {
+    try {
+        const { userId } = req.body;
+        if (!userId) {
+            return customResponse(res, "User ID is required", 0, 400);
+        }
+
+        // Vô hiệu hóa tất cả các token đang hoạt động của user
+        await AccessToken.updateMany(
+            { userID: userId, active: true },
+            { $set: { active: false } }
+        );
+
+        // Cập nhật trạng thái presence của user
+        await Presence.findOneAndUpdate(
+            { userID: userId },
+            {
+                $set: {
+                    presence: false,
+                    presenceTimeStamp: Date.now(),
+                }
+            },
+            options
+        );
+
+        return customResponse(res, "All tokens for the user have been revoked", 1, 200);
+    } catch (err) {
+        return customResponse(res, err.toString(), 0, 500);
+    }
+}
+
+async function cleanupExpiredTokens() {
+    const expirationThreshold = Date.now() - (7 * 24 * 60 * 60 * 1000); // 7 days ago
+    await AccessToken.deleteMany({
+        $or: [
+            { active: false },
+            { refreshExpiredTime: { $lt: expirationThreshold } }
+        ]
+    });
 }
