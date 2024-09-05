@@ -100,11 +100,12 @@ exports.takeRoomChat = async (req, res) => {
         let {room_id, type, list_user_id, page_size_message = 20} = req.body;
 
         const schema = Joi.object({
-                type: Joi.string().valid('personal', 'group').required(),
-                list_user_id: Joi.array().items(Joi.string()).required(),
+                type: Joi.string().valid('personal', 'group'),
+                list_user_id: Joi.array().items(Joi.string()),
                 page_size_message: Joi.number().default(20),
-                room_id: Joi.number(),
-        });
+                room_id: Joi.string(),
+        }).xor('room_id', 'list_user_id')
+          .with('list_user_id', 'type');
 
         const { error } = schema.validate(req.body);
 
@@ -169,7 +170,7 @@ exports.takeRoomChat = async (req, res) => {
             { chatID: room.id },
             { userID: 1, message: 1, stampTimeMessage: 1, id: 1, messageStatus: 1, typeMessage: 1 } // Only select these fields
         )
-        .sort({ stampTimeMessage: -1 }) // Sort by stampTimeMessage instead of createdAt
+        .sort({ stampTimeMessage: -1 })
         .limit(pageSizeMessage);
 
         const userIds = [...new Set(messageOfRoom.map(msg => msg.userID))];
@@ -189,21 +190,8 @@ exports.takeRoomChat = async (req, res) => {
             avatar: userAvatarMap[msg.userID.toString()]
         }));
 
-        room.messages = messageOfRoom;
+        room.typeLastMessage  = messageOfRoom[messageOfRoom.length - 1].typeMessage;
+        room.messages         = messageOfRoom;
 
         return BaseResponse.customResponse(res, "", 1, 200, room);
 }
-
-exports.logout = async (req, res) => {
-    const authHeader = req.headers['authorization'];
-    const token = authHeader && authHeader.split(' ')[1];
-
-    if (!token) {
-        return BaseResponse.customResponse(res, "No token provided", 0, 400, null);
-    }
-
-    // Blacklist the token
-    helper.blacklistToken(token);
-
-    return BaseResponse.customResponse(res, "Logged out successfully", 1, 200, null);
-};

@@ -13,8 +13,8 @@ const bcrypt = require('bcrypt');
 const saltRounds = 10;
 const secretKey = process.env.SECRET_KEY_JWT;
 const helper = require('../services/helper');
-const Chat = require('../models/Chat'); // Đảm bảo import model Chat
-const Message = require('../models/Message'); // Đảm bảo import model Message
+const Chat = require('../models/Chat');
+const Message = require('../models/Message');
 
 async function getTokens(user) {
     if (user == null) return false;
@@ -40,8 +40,6 @@ async function getTokens(user) {
 
     return tokenPair;
 }
-
-
 
 function customResponse(res, message, status = 0, code = 200, data = null) {
         return BaseResponse.customResponse(res, message, status, code, data);
@@ -381,7 +379,6 @@ exports.logout = async(req, res) => {
 
         if (!userId) return BaseResponse.customResponse(res, "Token is invalid", 0, 401);
         
-        // Vô hiệu hóa token hiện tại
         await AccessToken.findOneAndUpdate(
             { accessToken: token },
             { $set: { active: false } }
