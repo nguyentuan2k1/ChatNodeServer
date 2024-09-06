@@ -26,6 +26,10 @@ const ChatSchema = new mongoose.Schema({
         nameChat: {
                 Stype: String,
                 default: "",
+        }, 
+        typeLastMessage: {
+                type: String,
+                default: "text",
         }
 }, { timestamps: true }
 );

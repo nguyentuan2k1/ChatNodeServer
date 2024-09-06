@@ -54,26 +54,6 @@ class SocketService {
                         socket.leave(data["chatID"]);
                 });
 
-                socket.on('sendMessage', async (data) => {
-                        const currentUserId = await helper.getCurrentUserIdByToken(data['access_token']);
-                        
-                        // Lấy danh sách các phòng mà socket này đã join
-                        const rooms = Object.keys(socket.rooms);
-                        console.log('Socket đang ở trong các phòng:', rooms);
-
-                        // Kiểm tra xem socket có trong phòng cụ thể không
-                        if (socket.rooms[data["chatID"]]) {
-                                console.log('Socket đang ở trong phòng:', data["chatID"]);
-                        }
-
-                        socket.to(data["chatID"]).emit("receiveMessage", data["message"]);
-
-                        // thời gian gửi tin nhắn
-                        // ảnh của user gửi
-                        // tên người gửi
-                        // id user gửi
-                });
-
                 socket.on("sendActiveChat", async (data) => {
                         console.log("sendActiveChat");
                         console.log(data["chatID"]);
@@ -103,32 +83,41 @@ class SocketService {
                                         message: data["message"],
                                         urlImageMessage: data["urlImageMessage"],
                                         urlRecordMessage: data["urlRecordMessage"],
-                                        stampTimeMessage: Date.now(),
+                                        stampTimeMessage: data['timeMessage'],
                                         typeMessage: data["typeMessage"],
-                                        messageStatus: data["messageStatus"]
+                                        messageStatus: "sent"
                                 }
                         ).save();
                         if (chatMessage) {
                                 const getChat = await chatController.updateMessageChat(data["chatID"], chatMessage);
                                 if (getChat) {
-                                        fcmService.sendNotification(
-                                                data["deviceToken"],
+                                        const listUser = getChat.users.filter(user => user._id != data["userIDSender"]);
+
+                                        let usersDeviceToken = await User.find({ _id: { $in: listUser } }).select('deviceToken');
+
+                                        await fcmService.sendMultipleNotification(
+                                                usersDeviceToken,
+                                                data["nameSender"],
+                                                data["message"],
                                                 {
-                                                        'title': data["nameSender"],
-                                                        'body': getChat.lastMessage,
-                                                        'imageUrl': data["urlImageSender"]
-                                                },
-                                                {
-                                                        "chatID": getChat.id,
-                                                        "userIDSender": data["userIDSender"]
-                                                },
-                                                {
-                                                        "priority": "high",
-                                                },
-                                        );
-                                        _io.to(getChat.id).emit("serverSendMessage", chatMessage);
-                                        _io.to(getChat.id).emit("receivedMessage", {
-                                                "chat": getChat
+                                                  event: "new_message",
+                                                  data: JSON.stringify({
+                                                   imageUrl: data["urlImageSender"],
+                                                   chat: getChat,
+                                                   userIDSender: data["userIDSender"]
+                                                  }),
+                                                }
+                                              );
+
+                                        chatMessage.user_image = data["urlImageSender"];
+                                        chatMessage.user_name  = data["nameSender"];
+                                        chatMessage.isMine     = false;
+
+                                        socket.to(data["chatID"]).emit("newMessage", chatMessage);
+
+                                        socket.emit("updateSentMessages", {
+                                             "idMessage": chatMessage.id,
+                                             "statusMessage": chatMessage.messageStatus
                                         });
                                 }
                         }

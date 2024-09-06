@@ -3,6 +3,8 @@ const BaseResponse = require('../models/BaseResponse');
 const ChatMessages = require("../models/ChatMessages");
 const Paginate     = require('../models/Pagination');
 const Joi = require('joi');
+const helper = require('../services/helper');
+const User = require('../models/User');
 
 let options = { returnDocument: 'after' }
 exports.insertManyChatMessage = async (req, res) => {
@@ -95,22 +97,49 @@ exports.updateStatusMessageHttp = async (req, res) => {
         }
 
 }
-exports.getMessagesByChatID = async (req, res) => {
+exports.takeMessagesByChatID = async (req, res) => {
         try {
                 let schema = Joi.object({
                         chatID: Joi.string().required(),
                 });
 
-                const { chatID, page = 1, pageSize = 10 } = req.query;
+                const { chatID, page = 1, pageSize = 10 } = req.body;
 
-                const {error, validate} = schema.validate({ chatID: chatID ?? ""});                
+                const { error } = schema.validate({ chatID: chatID ?? "" });                
 
                 if (error) return BaseResponse.customResponse(res, error.message, 0, 400); 
 
-                const sort = { _id: -1 };
-            
-                const data = await Paginate.paginate(ChatMessages.find({ chatID }).sort(sort), ChatMessages.find({ chatID }).sort(sort), page, pageSize);
-                
+                const sort = { stampTimeMessage: -1 };  // Changed from 1 to -1 for descending order
+        
+                let data = await Paginate.paginate(
+                        ChatMessages.find({ chatID: chatID }).sort(sort),
+                        ChatMessages.find({ chatID: chatID }).sort(sort),
+                        page,
+                        pageSize
+                );
+
+                const userID = await helper.getInfoCurrentUser(req, res);
+
+                data.data = await Promise.all(data.data.map(async item => {
+                        const user = await User.findById(item.userID);
+                        let urlImage = "https://static.tuoitre.vn/tto/i/s626/2015/09/03/cho-meo-12-1441255605.jpg";
+
+                        if (user) {
+                                urlImage = user.urlImage ? user.urlImage : urlImage;
+                        }
+
+                        return {
+                                _id: item._id,
+                                userID: item.userID,
+                                message: item.message,
+                                stampTimeMessage: item.stampTimeMessage,
+                                typeMessage: item.typeMessage,
+                                messageStatus: item.messageStatus,
+                                avatar: urlImage,
+                                isMine: item.userID === userID
+                        };
+                }));
+
                 return BaseResponse.customResponse(res, "", 1, 200, data);
         } catch (error) {
                 return BaseResponse.customResponse(res, error.toString(), 0, 500);

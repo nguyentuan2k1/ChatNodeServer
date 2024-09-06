@@ -28,7 +28,13 @@ exports.getChatsIDByUserID = async (req, res) => {
         for (let index = 0; index < listChat.length; index++) {
                 let room = listChat[index];
                 
-                room.users = room.users.filter(user => user != userID);
+                if (room.users.length == 2
+                 && room.users[0] == room.users[1]
+                ) {
+                        room.users = [room.users[0]];
+                } else {
+                        room.users = room.users.filter(user => user != userID);
+                }
 
                 room = room.toObject();
 
@@ -57,8 +63,8 @@ exports.getChatsIDByUserID = async (req, res) => {
 
                         room.users[index] = {
                                 userID: room.users[index],
-                                presence: presence.presence,
-                                presenceTimeStamp: presence.presenceTimeStamp   
+                                presence: presence ? presence.presence : false,
+                                presenceTimeStamp: presence ? presence.presenceTimeStamp : Date.now(),
                         };
                 }
 
@@ -140,9 +146,9 @@ exports.takeRoomChat = async (req, res) => {
         if (room.type == "personal") {
                 let userId;
 
-                if (room.users[0] == room.users[1]) {
+                if (room.users[0] == room.users[1]) { // nếu nhắn bản thân thì lấy tên bản thân
                         userId = room.users[0];
-                } else {
+                } else { // nếu nhắn 1 người khác thì lấy tên người khác
                         userId = room.users.find(element => element != currentUserId);
                 }
 
@@ -152,13 +158,22 @@ exports.takeRoomChat = async (req, res) => {
                 room.nameChat = user.name;
         }
 
+        // xoá bản thân khỏi danh sách người dùng
+        if (room.users.length == 2
+                && room.users[0] == room.users[1]
+        ) {
+                room.users = [room.users[0]];
+        } else {
+                room.users = room.users.filter(user => user != currentUserId);
+        }
+
         for (let index = 0; index < room.users.length; index++) {
                 let presence = await Presence.findOne({userID: room.users[index]});
 
                 room.users[index] = {
                         userID: room.users[index],
-                        presence: presence.presence,
-                        presenceTimeStamp: presence.presenceTimeStamp
+                        presence: presence ? presence.presence : false,
+                        presenceTimeStamp: presence ? presence.presenceTimeStamp : Date.now(),
                 };
         }
 
@@ -189,7 +204,8 @@ exports.takeRoomChat = async (req, res) => {
 
         messageOfRoom = messageOfRoom.map(msg => ({
             ...msg.toObject(),
-            avatar: userAvatarMap[msg.userID.toString()]
+            avatar: userAvatarMap[msg.userID.toString()],
+            isMine: msg.userID.toString() === currentUserId.toString()
         }));
 
         room.typeLastMessage  = messageOfRoom[messageOfRoom.length - 1].typeMessage;

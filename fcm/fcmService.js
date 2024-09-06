@@ -27,3 +27,25 @@ exports.sendNotification = async (to, title, body , data, android) => {
         }
 
 }
+
+exports.sendMultipleNotification = async (token, title, body , data, android) => {
+        let message = {
+                notification: {
+                        title: title,
+                        body: body,
+                },
+                tokens: token,
+                data: data,
+                android: android,
+        };
+        try {
+                const response = await messaging.send(message);
+                if (response) {
+                        console.log("send notification success");
+                }
+        } catch (error) {
+                console.log("send notification failed");
+                console.log(error.toString());
+        }
+
+}

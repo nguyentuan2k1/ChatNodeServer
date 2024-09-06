@@ -197,11 +197,18 @@ exports.login = async (req, res) => {
 
                 const {accessToken, refreshToken, expiredTime, refreshExpiredTime} = await getTokens(user);
 
-                const updatePresence = await Presence.findOneAndUpdate({ userID: user.id }, {
-                        $set: {
-                                presence: true,
+                const updatePresence = await Presence.findOneAndUpdate(
+                        { userID: user.id }, // Điều kiện tìm kiếm
+                        {
+                          $set: {
+                            presence: true,
+                          }
+                        },
+                        { 
+                          new: true,        // Trả về bản ghi đã cập nhật
+                          upsert: true      // Tạo mới nếu không tồn tại
                         }
-                }, options);
+                      );
 
                 const { email, name, isDarkMode, urlImage, deviceToken, phone } = user;
                 const { presenceTimeStamp } = updatePresence;
