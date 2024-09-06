@@ -195,7 +195,7 @@ exports.login = async (req, res) => {
 
                 if (!checkPassword) return customResponse(res, "User or password is not right . Please try again", 0, 401);
 
-                const {accessToken, refreshToken} = await getTokens(user);
+                const {accessToken, refreshToken, expiredTime, refreshExpiredTime} = await getTokens(user);
 
                 const updatePresence = await Presence.findOneAndUpdate({ userID: user.id }, {
                         $set: {
@@ -215,7 +215,9 @@ exports.login = async (req, res) => {
                         urlImage,
                         presenceTimeStamp,
                         deviceToken,
-                        phone
+                        phone,
+                        "token_expired" : expiredTime,
+                        "refresh_token_expired" : refreshExpiredTime
                 });
 
         } catch (err) {

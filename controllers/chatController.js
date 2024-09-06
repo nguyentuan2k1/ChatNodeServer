@@ -27,6 +27,8 @@ exports.getChatsIDByUserID = async (req, res) => {
 
         for (let index = 0; index < listChat.length; index++) {
                 let room = listChat[index];
+                
+                room.users = room.users.filter(user => user != userID);
 
                 room = room.toObject();
 

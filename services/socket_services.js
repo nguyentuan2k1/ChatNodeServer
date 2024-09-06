@@ -55,7 +55,19 @@ class SocketService {
                 });
 
                 socket.on('sendMessage', async (data) => {
+                        const currentUserId = await helper.getCurrentUserIdByToken(data['access_token']);
+                        
+                        // Lấy danh sách các phòng mà socket này đã join
+                        const rooms = Object.keys(socket.rooms);
+                        console.log('Socket đang ở trong các phòng:', rooms);
+
+                        // Kiểm tra xem socket có trong phòng cụ thể không
+                        if (socket.rooms[data["chatID"]]) {
+                                console.log('Socket đang ở trong phòng:', data["chatID"]);
+                        }
+
                         socket.to(data["chatID"]).emit("receiveMessage", data["message"]);
+
                         // thời gian gửi tin nhắn
                         // ảnh của user gửi
                         // tên người gửi
