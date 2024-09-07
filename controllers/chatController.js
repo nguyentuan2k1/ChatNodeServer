@@ -183,7 +183,7 @@ exports.takeRoomChat = async (req, res) => {
         const pageSizeMessage = page_size_message;
 
         let messageOfRoom = await ChatMessages.find(
-            { chatID: room.id },
+            { chatID: room._id },
             { userID: 1, message: 1, stampTimeMessage: 1, id: 1, messageStatus: 1, typeMessage: 1 } // Only select these fields
         )
         .sort({ stampTimeMessage: -1 })
