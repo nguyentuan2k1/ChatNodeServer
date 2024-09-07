@@ -290,15 +290,15 @@ exports.getUsers =  async (req, res) => {
             ? urlImage
             : "https://static.tuoitre.vn/tto/i/s626/2015/09/03/cho-meo-12-1441255605.jpg";
 
-          const precenses = await Presence.findOne({ userID: id });
+          const presence = await Presence.findOne({ userID: id });
 
           dataItem.push({ 
                         id,
                         name,
                         urlImage,
                         status: status,
-                        presence : precenses ? precenses.presence : false,
-                        presence_timestamp : precenses.presenceTimeStamp ? precenses.presenceTimeStamp : Date.now()
+                        presence : presence ? presence.presence : false,
+                        presence_timestamp : presence ? presence.presenceTimeStamp : new Date().toISOString(),
                         });
         }
 

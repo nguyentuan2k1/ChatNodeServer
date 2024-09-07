@@ -54,7 +54,7 @@ exports.getFriends = async (req, res) => {
                     urlImage: item.urlImage || "https://static.tuoitre.vn/tto/i/s626/2015/09/03/cho-meo-12-1441255605.jpg",
                     presence: precenses ? precenses.presence : false,
                     id: item.id,
-                    presence_timestamp : precenses.presenceTimeStamp
+                    presence_timestamp : precenses ? precenses.presenceTimeStamp : new Date().toISOString(),
                 };
             })
         );
@@ -201,9 +201,9 @@ exports.updateFriendStatus = async (req, res) => {
               friend_info : {
                 name : userInfo.name,
                 urlImage : userInfo.urlImage ?  userInfo.urlImage :"https://static.tuoitre.vn/tto/i/s626/2015/09/03/cho-meo-12-1441255605.jpg",
-                presence : precenseUserInfo ? precenseUserInfo.presence : false ,
+                presence : precenseUserInfo ? precenseUserInfo.presence : false,
                 id: userInfo.id,
-                presence_timestamp : precenseUserInfo.presenceTimeStamp ? precenseUserInfo.presenceTimeStamp : Date.now()
+                presence_timestamp : precenseUserInfo ? precenseUserInfo.presenceTimeStamp : new Date().toISOString()
               }
             }),
           }

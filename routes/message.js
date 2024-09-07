@@ -3,7 +3,7 @@ const chatMessagesController = require("../controllers/chatMessagesController");
 
 router.post("/insertMessages", chatMessagesController.insertManyChatMessage);
 
-router.post("/takeMessages", chatMessagesController.takeMessagesByChatID);
+router.get("/takeMessages", chatMessagesController.takeMessagesByChatID);
 
 router.post("/updateStatusMessage", chatMessagesController.updateStatusMessageHttp);
 

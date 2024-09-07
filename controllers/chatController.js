@@ -57,14 +57,13 @@ exports.getChatsIDByUserID = async (req, res) => {
                         room.nameChat = user.name;
                 }
 
-
                 for (let index = 0; index < room.users.length; index++) {
                         let presence = await Presence.findOne({userID: room.users[index]});
-
+                        
                         room.users[index] = {
                                 userID: room.users[index],
                                 presence: presence ? presence.presence : false,
-                                presenceTimeStamp: presence ? presence.presenceTimeStamp : Date.now(),
+                                presenceTimeStamp: new Date().toISOString(),
                         };
                 }
 
@@ -173,7 +172,7 @@ exports.takeRoomChat = async (req, res) => {
                 room.users[index] = {
                         userID: room.users[index],
                         presence: presence ? presence.presence : false,
-                        presenceTimeStamp: presence ? presence.presenceTimeStamp : Date.now(),
+                        presenceTimeStamp: presence ? presence.presenceTimeStamp : new Date().toISOString(),
                 };
         }
 
@@ -208,7 +207,9 @@ exports.takeRoomChat = async (req, res) => {
             isMine: msg.userID.toString() === currentUserId.toString()
         }));
 
-        room.typeLastMessage  = messageOfRoom[messageOfRoom.length - 1].typeMessage;
+        let lastMessageOfRoom = messageOfRoom[messageOfRoom.length - 1];
+
+        room.typeLastMessage  = lastMessageOfRoom ? lastMessageOfRoom.typeMessage : room.typeLastMessage;
         room.messages         = messageOfRoom;
 
         return BaseResponse.customResponse(res, "", 1, 200, room);

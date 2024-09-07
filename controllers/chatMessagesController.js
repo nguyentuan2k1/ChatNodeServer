@@ -103,19 +103,19 @@ exports.takeMessagesByChatID = async (req, res) => {
                         chatID: Joi.string().required(),
                 });
 
-                const { chatID, page = 1, pageSize = 10 } = req.body;
+                let { chatID, page = 1, pageSize = 10 } = req.query;
 
                 const { error } = schema.validate({ chatID: chatID ?? "" });                
 
                 if (error) return BaseResponse.customResponse(res, error.message, 0, 400); 
 
                 const sort = { stampTimeMessage: -1 };  // Changed from 1 to -1 for descending order
-        
+
                 let data = await Paginate.paginate(
-                        ChatMessages.find({ chatID: chatID }).sort(sort),
-                        ChatMessages.find({ chatID: chatID }).sort(sort),
-                        page,
-                        pageSize
+                    ChatMessages.find({ chatID: chatID }).sort(sort),
+                    ChatMessages.find({ chatID: chatID }),
+                    page,
+                    pageSize,
                 );
 
                 const userID = await helper.getInfoCurrentUser(req, res);
