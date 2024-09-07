@@ -189,6 +189,12 @@ exports.takeRoomChat = async (req, res) => {
         .sort({ stampTimeMessage: -1 })
         .limit(pageSizeMessage);
 
+        const totalMessagesOfRoom = await ChatMessages.find(
+          { chatID: room._id },
+        ).countDocuments();
+
+        const totalPages = Math.ceil(totalMessagesOfRoom / pageSizeMessage);
+
         const userIds = [...new Set(messageOfRoom.map(msg => msg.userID))];
 
         const users = await User.find(
@@ -211,6 +217,7 @@ exports.takeRoomChat = async (req, res) => {
 
         room.typeLastMessage  = lastMessageOfRoom ? lastMessageOfRoom.typeMessage : room.typeLastMessage;
         room.messages         = messageOfRoom;
+        room.totalPages       = totalPages;
 
         return BaseResponse.customResponse(res, "", 1, 200, room);
 }
