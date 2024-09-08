@@ -85,7 +85,7 @@ class SocketService {
                         }
                 });
                 socket.on("clientSendMessage", async (data) => {
-                        const chatMessage = await new ChatMessage(
+                        let chatMessage = await new ChatMessage(
                                 {
                                         chatID: data["chatID"],
                                         userID: data["userID"],
@@ -98,6 +98,7 @@ class SocketService {
                                 }
                         ).save();
                         if (chatMessage) {
+                                chatMessage.uuid = data["uuid"];
                                 const getChat = await chatController.updateMessageChat(data["chatID"], chatMessage);
                                 if (getChat) {
                                         // const listUser = getChat.users.filter(user => user._id != data["userIDSender"]);
@@ -123,9 +124,10 @@ class SocketService {
                                         chatMessage.isMine     = false;
 
                                         socket.to(data["chatID"]).emit("newMessage", chatMessage);
-
+                                        
                                         socket.emit("updateSentMessages", {
                                              "idMessage": chatMessage.id,
+                                             "uuid" : chatMessage.uuid,
                                              "statusMessage": chatMessage.messageStatus
                                         });
                                 }
