@@ -124,8 +124,8 @@ exports.login = async (req, res) => {
                           }
                         },
                         { 
-                          new: true,        // Trả về bản ghi đã cập nhật
-                          upsert: true      // Tạo mới nếu không tồn tại
+                          new: true,        
+                          upsert: true      
                         }
                       );
 
@@ -138,10 +138,11 @@ exports.login = async (req, res) => {
                         email,
                         name,
                         isDarkMode,
-                        urlImage,
+                        urlImage : urlImage ? urlImage : "https://static.tuoitre.vn/tto/i/s626/2015/09/03/cho-meo-12-1441255605.jpg",
                         presenceTimeStamp,
                         deviceToken,
                         phone,
+                        userID: user.id,
                         "token_expired" : expiredTime,
                         "refresh_token_expired" : refreshExpiredTime
                 });
