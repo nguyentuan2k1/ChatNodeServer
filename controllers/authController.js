@@ -419,6 +419,7 @@ exports.refreshToken = async (req, res) => {
         }
 
         const tokenPair = await AccessToken.findOne({ refreshToken, active: true });
+        
         if (!tokenPair) {
             return customResponse(res, "Invalid refresh token", 0, 401);
         }
@@ -441,27 +442,12 @@ exports.refreshToken = async (req, res) => {
         tokenPair.expiredTime = newAccessExpiredTime;
         tokenPair.refreshExpiredTime = newRefreshExpiredTime;
         await tokenPair.save();
-
-        // Lấy danh sách phòng chat của user
-        const chats = await Chat.find({ users: tokenPair.userID });
-
-        // Lấy tin nhắn cho mỗi phòng chat
-        const chatsWithMessages = await Promise.all(chats.map(async (chat) => {
-            const messages = await Message.find({ chatID: chat._id })
-                .sort({ createdAt: -1 })
-                .limit(parseInt(pageSizeMessage) || 20); // Mặc định là 20 nếu không có pageSizeMessage
-
-            return {
-                ...chat.toObject(),
-                messages: messages.reverse() // Đảo ngược để có thứ tự từ cũ đến mới
-            };
-        }));
-
+        
         return customResponse(res, "Token refreshed successfully", 1, 200, {
             accessToken: newAccessToken,
             refreshToken: refreshToken,
             refreshExpiredTime: newRefreshExpiredTime,
-            chats: chatsWithMessages
+            accessExpiredTime: newAccessExpiredTime
         });
 
     } catch (err) {
