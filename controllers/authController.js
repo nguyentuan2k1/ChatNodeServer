@@ -19,10 +19,10 @@ async function getTokens(user) {
 
     let userid = typeof user === 'object' ? user.id : user;
 
-    const accessToken = jwt.sign({ id: userid }, secretKey, { expiresIn: '1h' });
+    const accessToken = jwt.sign({ id: userid }, secretKey, { expiresIn: '24h' });
     const refreshToken = jwt.sign({ id: userid }, secretKey, { expiresIn: '7d' });
 
-    const expiredTime = Date.now() + 1000 * 60 * 60;
+    const expiredTime        = Date.now() + 1000 * 60 * 60 * 24;
     const refreshExpiredTime = Date.now() + 1000 * 60 * 60 * 24 * 7;
 
     const tokenPair = new AccessToken({

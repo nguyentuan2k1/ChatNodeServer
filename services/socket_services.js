@@ -66,14 +66,23 @@ class SocketService {
 
                         }
                 });
-                socket.on("updateSentMessages", async (data) => {
-                        console.log("updateSentMessages");
-                        console.log(data["chatID"]);
-                        console.log(data["userID"]);
-                        const messages = await chatMessagesController.updateStatusSentMessage(data["chatID"], data["userID"]);
-                        _io.to(data["chatID"]).emit("receiveMessagesUpdated", {
-                                "ListIDMessage": messages
-                        });
+                socket.on("updateStatusMessage", async (data) => {
+                        const chatID = data["chatID"];
+                        const messageID = data["messageID"];
+                        const statusMessage = data["statusMessage"];
+
+                        const chatMessage = await ChatMessage.findOneAndUpdate(
+                                { id: messageID },
+                                { $set: { messageStatus: statusMessage } },
+                                options
+                        );
+
+                        if (chatMessage) {
+                                socket.to(chatID).emit("updateMessageStatus", {
+                                        "idMessage": messageID,
+                                        "statusMessage": statusMessage
+                                });
+                        }
                 });
                 socket.on("clientSendMessage", async (data) => {
                         const chatMessage = await new ChatMessage(
