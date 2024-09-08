@@ -30,6 +30,10 @@ const ChatSchema = new mongoose.Schema({
         typeLastMessage: {
                 type: String,
                 default: "text",
+        },
+        enable : {
+                type: String,
+                default: "false",
         }
 }, { timestamps: true }
 );

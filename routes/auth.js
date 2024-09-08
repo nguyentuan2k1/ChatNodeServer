@@ -7,10 +7,6 @@ router.post("/presence", authController.getPresence);
 router.post("/register", authController.register);
 //LOGIN
 router.post("/login", authController.login);
-//Login With Token
-router.post("/loginwithaccesstoken", authController.loginByToken);
-
-router.post("/loginwithgoogle", authController.loginByGoogle);
 
 router.post('/refresh-device-token', authController.refreshDeviceToken);
 

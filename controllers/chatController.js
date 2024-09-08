@@ -17,10 +17,10 @@ exports.getChatsIDByUserID = async (req, res) => {
         let userID = await helper.getInfoCurrentUser(req, res);
 
         if (!userID) {
-        return BaseResponse.customResponse(res, "Unauthorized", 0, 401, null);
+                return BaseResponse.customResponse(res, "Unauthorized", 0, 401, null);
         }
 
-        let dataPaginate = await Paginate.paginate(Chat.find({users: { $in: userID }}), Chat.find({users: { $in: userID }}), parseInt(page) , parseInt(pageSize));
+        let dataPaginate = await Paginate.paginate(Chat.find({users: { $in: userID }, enable : "true"}), Chat.find({users: { $in: userID }, enable : "true"}), parseInt(page) , parseInt(pageSize));
         let listChat     = dataPaginate.data;
 
         var listChatUserAndPresence = [];
@@ -53,7 +53,7 @@ exports.getChatsIDByUserID = async (req, res) => {
 
                                 let user = await User.findById(itemUSer);
 
-                                room.urlImage = user.urlImage ? user.urlImage : "https://static.tuoitre.vn/tto/i/s626/2015/09/03/cho-meo-12-1441255605.jpg"     ;
+                                room.urlImage = user.urlImage ? user.urlImage : "https://static.tuoitre.vn/tto/i/s626/2015/09/03/cho-meo-12-1441255605.jpg";
                                 room.nameChat = user.name;
                         }
 
@@ -68,7 +68,7 @@ exports.getChatsIDByUserID = async (req, res) => {
                         }
 
                         listChatUserAndPresence.push(room);
-  }
+        }
 
         const { currentPage,total, totalPages} = dataPaginate;
 
@@ -89,6 +89,7 @@ exports.updateMessageChat = async (chatID, message) => {
                         lastMessage: message.message,
                         timeLastMessage: message.stampTimeMessage,
                         userIDLastMessage: message.userID,
+                        enable : "true",
                 }
         }, options);
 }
@@ -157,7 +158,6 @@ exports.takeRoomChat = async (req, res) => {
                 room.nameChat = user.name;
         }
 
-        // xoá bản thân khỏi danh sách người dùng
         if (room.users.length == 2
                 && room.users[0] == room.users[1]
         ) {

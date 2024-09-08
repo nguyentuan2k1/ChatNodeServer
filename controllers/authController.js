@@ -13,8 +13,6 @@ const bcrypt = require('bcrypt');
 const saltRounds = 10;
 const secretKey = process.env.SECRET_KEY_JWT;
 const helper = require('../services/helper');
-const Chat = require('../models/Chat');
-const Message = require('../models/Message');
 
 async function getTokens(user) {
     if (user == null) return false;
@@ -45,86 +43,6 @@ function customResponse(res, message, status = 0, code = 200, data = null) {
         return BaseResponse.customResponse(res, message, status, code, data);
 }
 
-exports.loginByToken = async (req, res) => {
-        try {
-                const authorization = req.headers.authorization;
-                const str = authorization.split(" ")[1];
-                const checkAccessToken = await AccessToken.findOne({ accessToken: str });
-                if (checkAccessToken != null) {
-                        const user = await User.findByIdAndUpdate(checkAccessToken.userID, {
-                                $set: {
-                                        deviceToken: req.body.deviceToken
-                                },
-                        }, options);
-                        const updatePresence = await Presence.findOneAndUpdate({ userID: user.id }, {
-                                $set: {
-                                        presence: true,
-                                        presenceTimeStamp: Date.now()
-                                }
-                        }, options);
-                        // const userPresence = await Presence.findById(updatePresence);
-                        if (user != null) {
-                                const friend = await Friends.findOne({ userID: user.id });
-                                if (!friend) {
-                                        const newFriend = new Friends({
-                                                userID: user.id,
-                                                nameChat: user.name,
-                                        });
-                                        await newFriend.save();
-                                }
-                                return res.status(200).json(
-                                        new BaseResponse(
-                                                1,
-                                                Date.now(),
-                                                [
-                                                        { accessToken: checkAccessToken, user: user, userPresence: updatePresence }
-                                                ],
-                                                new Errors(
-                                                        200,
-                                                        "",
-                                                )
-                                        ));
-                        }
-                        else {
-                                return res.status(401).json(
-                                        new BaseResponse(
-                                                -1,
-                                                Date.now(),
-                                                [],
-                                                new Errors(
-                                                        401,
-                                                        "You are not authenticated",
-                                                )
-                                        ));
-                        }
-                }
-                else {
-                        res.status(404).json(
-                                new BaseResponse(
-                                        -1,
-                                        Date.now(),
-                                        [],
-                                        new Errors(
-                                                401,
-                                                "Token is invalid",
-                                        )
-                                ));
-                }
-
-        } catch (err) {
-                return res.status(500).json(
-                        new BaseResponse(
-                                -1,
-                                Date.now(),
-                                [],
-                                new Errors(
-                                        500,
-                                        err.toString(),
-                                )
-                        ));
-        }
-}
-
 exports.register = async (req, res) => {
         try {            
                 const checkEmail = await User.findOne({ email: req.body.email });
@@ -150,6 +68,7 @@ exports.register = async (req, res) => {
                         presence: false,
                         presenceTimeStamp: Date.now()
                 });
+
                 await newPresence.save();
 
                 const {accessToken} = await getAccessToken(newUser);
