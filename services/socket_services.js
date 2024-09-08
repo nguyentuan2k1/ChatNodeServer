@@ -91,23 +91,23 @@ class SocketService {
                         if (chatMessage) {
                                 const getChat = await chatController.updateMessageChat(data["chatID"], chatMessage);
                                 if (getChat) {
-                                        const listUser = getChat.users.filter(user => user._id != data["userIDSender"]);
+                                        // const listUser = getChat.users.filter(user => user._id != data["userIDSender"]);
 
-                                        let usersDeviceToken = await User.find({ _id: { $in: listUser } }).select('deviceToken');
+                                        // let usersDeviceToken = await User.find({ _id: { $in: listUser } }).select('deviceToken');
 
-                                        await fcmService.sendMultipleNotification(
-                                                usersDeviceToken,
-                                                data["nameSender"],
-                                                data["message"],
-                                                {
-                                                  event: "new_message",
-                                                  data: JSON.stringify({
-                                                   imageUrl: data["urlImageSender"],
-                                                   chat: getChat,
-                                                   userIDSender: data["userIDSender"]
-                                                  }),
-                                                }
-                                              );
+                                        // await fcmService.sendMultipleNotification(
+                                        //         usersDeviceToken,
+                                        //         data["nameSender"],
+                                        //         data["message"],
+                                        //         {
+                                        //           event: "new_message",
+                                        //           data: JSON.stringify({
+                                        //            imageUrl: data["urlImageSender"],
+                                        //            chat: JSON.stringify(getChat),
+                                        //            userIDSender: data["userIDSender"]
+                                        //           }),
+                                        //         }
+                                        //       );
 
                                         chatMessage.user_image = data["urlImageSender"];
                                         chatMessage.user_name  = data["nameSender"];
