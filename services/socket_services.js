@@ -88,7 +88,7 @@ class SocketService {
                         const chatMessage = await new ChatMessage(
                                 {
                                         chatID: data["chatID"],
-                                        userID: data["userIDSender"],
+                                        userID: data["userID"],
                                         message: data["message"],
                                         urlImageMessage: data["urlImageMessage"],
                                         urlRecordMessage: data["urlRecordMessage"],
