@@ -83,7 +83,7 @@ class SocketService {
                                         message: data["message"],
                                         urlImageMessage: data["urlImageMessage"],
                                         urlRecordMessage: data["urlRecordMessage"],
-                                        stampTimeMessage: data['timeMessage'],
+                                        stampTimeMessage: Date.now(),
                                         typeMessage: data["typeMessage"],
                                         messageStatus: "sent"
                                 }

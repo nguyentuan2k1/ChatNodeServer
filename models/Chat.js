@@ -32,8 +32,8 @@ const ChatSchema = new mongoose.Schema({
                 default: "text",
         },
         enable : {
-                type: String,
-                default: "false",
+                type: Boolean,
+                default: false,
         }
 }, { timestamps: true }
 );

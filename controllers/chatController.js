@@ -20,7 +20,7 @@ exports.getChatsIDByUserID = async (req, res) => {
                 return BaseResponse.customResponse(res, "Unauthorized", 0, 401, null);
         }
 
-        let dataPaginate = await Paginate.paginate(Chat.find({users: { $in: userID }, enable : "true"}), Chat.find({users: { $in: userID }, enable : "true"}), parseInt(page) , parseInt(pageSize));
+        let dataPaginate = await Paginate.paginate(Chat.find({users: { $in: userID }, enable : true}), Chat.find({users: { $in: userID }, enable : true}), parseInt(page) , parseInt(pageSize));
         let listChat     = dataPaginate.data;
 
         var listChatUserAndPresence = [];
@@ -89,7 +89,7 @@ exports.updateMessageChat = async (chatID, message) => {
                         lastMessage: message.message,
                         timeLastMessage: message.stampTimeMessage,
                         userIDLastMessage: message.userID,
-                        enable : "true",
+                        enable : true,
                 }
         }, options);
 }
