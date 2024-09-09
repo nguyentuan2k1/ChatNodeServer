@@ -98,7 +98,11 @@ class SocketService {
                                 }
                         ).save();
                         if (chatMessage) {
+                                chatMessage = chatMessage.toObject();
                                 chatMessage.uuid = data["uuid"];
+                                chatMessage.avatar = data["avatar"];
+                                chatMessage.nameSender = data["nameSender"];
+                                chatMessage.isMine = false;
                                 const getChat = await chatController.updateMessageChat(data["chatID"], chatMessage);
                                 if (getChat) {
                                         // const listUser = getChat.users.filter(user => user._id != data["userIDSender"]);
@@ -119,10 +123,7 @@ class SocketService {
                                         //         }
                                         //       );
 
-                                        chatMessage.user_image = data["urlImageSender"];
-                                        chatMessage.user_name  = data["nameSender"];
-                                        chatMessage.isMine     = false;
-
+                                        
                                         socket.to(data["chatID"]).emit("newMessage", chatMessage);
                                         
                                         socket.emit("updateSentMessages", {
