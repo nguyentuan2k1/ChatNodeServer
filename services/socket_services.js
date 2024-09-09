@@ -5,7 +5,8 @@ const ChatMessage = require("../models/ChatMessages");
 const chatMessagesController = require("../controllers/chatMessagesController");
 let options = { returnDocument: 'after' };
 const UserSocket = require("../models/UserSocket");
-const helper = require('../services/helper')
+const helper = require('../services/helper');
+const ChatMessages = require("../models/ChatMessages");
 
 class SocketService {
         connection(socket) {
@@ -66,23 +67,23 @@ class SocketService {
 
                         }
                 });
-                socket.on("updateStatusMessage", async (data) => {
-                        const chatID = data["chatID"];
-                        const messageID = data["messageID"];
-                        const statusMessage = data["statusMessage"];
+                socket.on("updateMessageStatus", async (data) => {
+                  const chatID = data["chatID"];
+                  const messageID = data["messageID"];
+                  const statusMessage = data["statusMessage"];
 
-                        const chatMessage = await ChatMessage.findOneAndUpdate(
-                                { id: messageID },
-                                { $set: { messageStatus: statusMessage } },
-                                options
-                        );
+                  const chatMessage = await ChatMessage.findOneAndUpdate(
+                    { id: messageID },
+                    { $set: { messageStatus: statusMessage } },
+                    options
+                  );
 
-                        if (chatMessage) {
-                                socket.to(chatID).emit("updateMessageStatus", {
-                                        "idMessage": messageID,
-                                        "statusMessage": statusMessage
-                                });
-                        }
+                  if (chatMessage) {
+                    socket.to(chatID).emit("updateMessageStatus", {
+                      idMessage: messageID,
+                      statusMessage: statusMessage,
+                    });
+                  }
                 });
                 socket.on("clientSendMessage", async (data) => {
                         let chatMessage = await new ChatMessage(
@@ -134,7 +135,23 @@ class SocketService {
                                 }
                         }
                 });
+                socket.on("updateReadMessages", async (data) => {
+                  const chatID = data["chatID"];
 
+                  const result = await ChatMessages.updateMany(
+                     { chatID: chatID, messageStatus: "sent" },
+                     {
+                       $set: { messageStatus: "read" },
+                     }
+                  );
+                
+
+                  if (result) {     
+                    socket.to(chatID).emit("userReadMessages", {
+                        "messages" : result
+                    });
+                  }                  
+                });
                 socket.on('disconnect', async (data) => {
                         console.log("disconect" + socket.id);
                         
