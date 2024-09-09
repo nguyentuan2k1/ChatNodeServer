@@ -148,12 +148,12 @@ class SocketService {
 
                   if (result) {     
                     socket.to(chatID).emit("userReadMessages", {
-                        "messages" : result
+                        "chatID" : chatID,
                     });
                   }                  
                 });
                 socket.on('disconnect', async (data) => {
-                        console.log("disconect" + socket.id);
+                        console.log("disconect: " + socket.id);
                         
                         const userSocket = await UserSocket.findOne({socket_id : socket.id});
                                                 
@@ -170,9 +170,7 @@ class SocketService {
                 });
 
                 socket.on('reconnect', async(data) => {
-                        console.log("reconnect");
-                        
-                        console.log(socket.id);
+                        console.log("reconnect: " + socket.id);
                         
                         let token           = data['access_token'];                                           
                         const currentUserId = await helper.getCurrentUserIdByToken(token);
@@ -191,6 +189,28 @@ class SocketService {
                                 );
 
                                 if (userSocket) {
+                                        console.log("old socketid: " + userSocket.socket_id);
+                                        console.log("new socketid: " + socket.id);
+
+                                        const rooms =
+                                            _io.of("/").adapter.rooms;
+
+                                        const sids = _io.of("/").adapter.sids;
+
+                                        rooms.forEach((_, roomId) => {
+                                            console.log("roomId: " + roomId);
+                                            if (
+                                              !sids
+                                                .get(userSocket.socket_id)
+                                                ?.has(roomId)
+                                            ) {
+                                              console.log(
+                                                `User ${currentUserId} with socket ${socket.id} joined room ${roomId}`
+                                              );
+                                              socket.join(roomId);
+                                            }
+                                          });
+
                                         userSocket.socket_id = socket.id;
                                         userSocket.save();
                                 } else {
@@ -201,6 +221,7 @@ class SocketService {
                                 }
 
                                 if (presence) {
+
                                         console.log("updateUserPresence rennect");
                                         
                                         socket.broadcast.emit("updateUserPresence", {
