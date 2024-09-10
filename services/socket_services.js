@@ -152,6 +152,30 @@ class SocketService {
                     });
                   }                  
                 });
+                socket.on("user-typing", async (data) => {
+                        console.log("user-typing: ");
+                        console.log(data)
+                        const chatID = data["chatID"];
+
+                        socket.to(chatID).emit("update-user-typing", {
+                          chatID: chatID,
+                          userID: data["userID"],
+                          senderAvatar: data["senderAvatar"],
+                          senderName: data["senderName"],
+                        });
+                });
+                socket.on("user-stop-typing", async (data) => {
+                        console.log("user-stop-typing: ");
+                        console.log(data);
+                        const chatID = data["chatID"];
+
+                        socket.to(chatID).emit("update-user-stop-typing", {
+                                chatID: chatID,
+                                userID: data["userID"],
+                                senderAvatar: data["senderAvatar"],
+                                senderName: data["senderName"],
+                        });
+                });
                 socket.on('disconnect', async (data) => {
                         console.log("disconect: " + socket.id);
                         
