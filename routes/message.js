@@ -1,11 +1,16 @@
 const router = require('express').Router();
 const multer = require('multer');
 const path = require('path');
+const fs = require('fs');
 const storage = multer.diskStorage({
     destination: function (req, file, cb) {
         cb(null, 'uploads/'); // Thư mục để lưu file tạm
     },
     filename: function (req, file, cb) {
+        if (!fs.existsSync('uploads/')) {
+            fs.mkdirSync('uploads', { recursive: true });
+        }
+
         const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
         cb(null, file.fieldname + '-' + uniqueSuffix + path.extname(file.originalname));
     }
