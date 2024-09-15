@@ -7,6 +7,7 @@ let options = { returnDocument: 'after' };
 const UserSocket = require("../models/UserSocket");
 const helper = require('../services/helper');
 const ChatMessages = require("../models/ChatMessages");
+const Chat = require("../models/Chat");
 
 class SocketService {
         connection(socket) {
@@ -104,11 +105,21 @@ class SocketService {
                                 chatMessage.avatar = data["avatar"];
                                 chatMessage.nameSender = data["nameSender"];
                                 chatMessage.isMine = false;
+                                let findChatIsActive = await Chat.findOne({
+                                        id : data["chatID"],
+                                        enable : false,
+                                })
                                 const getChat = await chatController.updateMessageChat(data["chatID"], chatMessage);
                                 if (getChat) {
-                                        // const listUser = getChat.users.filter(user => user._id != data["userIDSender"]);
+                                        const listUser = getChat.users.filter(user => user._id != data["userIDSender"]);
 
                                         // let usersDeviceToken = await User.find({ _id: { $in: listUser } }).select('deviceToken');
+
+                                        if (!findChatIsActive) {
+                                                
+                                        } else {
+
+                                        }
 
                                         // await fcmService.sendMultipleNotification(
                                         //         usersDeviceToken,
@@ -123,7 +134,6 @@ class SocketService {
                                         //           }),
                                         //         }
                                         //       );
-
                                         
                                         socket.to(data["chatID"]).emit("newMessage", chatMessage);
                                         

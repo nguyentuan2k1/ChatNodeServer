@@ -5,6 +5,7 @@ const Paginate     = require('../models/Pagination');
 const Joi = require('joi');
 const helper = require('../services/helper');
 const User = require('../models/User');
+const path = require('path');
 
 let options = { returnDocument: 'after' }
 exports.insertManyChatMessage = async (req, res) => {
@@ -145,4 +146,22 @@ exports.takeMessagesByChatID = async (req, res) => {
                 return BaseResponse.customResponse(res, error.toString(), 0, 500);
         }
 
+}
+
+exports.uploadMessageImage = async (req, res) => {
+        try {
+                const file = req.file;
+        
+                if (!file) {
+                    return BaseResponse.customResponse(res, "No file uploaded.", 0, 400);
+                }
+
+                const fullPath = path.resolve(file.path);
+
+                return BaseResponse.customResponse(res, "Upload successfully", 0, 200, {
+                        url : fullPath
+                });
+        } catch (error) {
+                return BaseResponse.customResponse(res, error.message, 0, 400);
+        }
 }

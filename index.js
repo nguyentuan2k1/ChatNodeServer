@@ -32,9 +32,6 @@ global.dotenv.config();
 
 io.on("connection", SocketService.connection);
 
-global.usersID = new Map();
-global.usersRooms = new Map();
-
 app.use("/api/auth", authRouter);
 
 app.use("/api/user", userRouter);
