@@ -26,6 +26,8 @@ mongoose
 
 const io = new Server(server);
 
+app.use('/uploads', express.static('uploads'));
+
 global._io = io;
 global.dotenv = dotenv;
 global.dotenv.config();

@@ -156,10 +156,10 @@ exports.uploadMessageImage = async (req, res) => {
                     return BaseResponse.customResponse(res, "No file uploaded.", 0, 400);
                 }
 
-                const fullPath = path.resolve(file.path);
+                const publicUrl = `${req.protocol}://${req.get('host')}/uploads/${file.filename}`;
 
                 return BaseResponse.customResponse(res, "Upload successfully", 0, 200, {
-                        url : fullPath
+                        url : publicUrl
                 });
         } catch (error) {
                 return BaseResponse.customResponse(res, error.message, 0, 400);
