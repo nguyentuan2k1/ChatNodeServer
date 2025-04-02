@@ -9,45 +9,58 @@ const helper = require('../services/helper');
 const ChatMessages = require("../models/ChatMessages");
 const Chat = require("../models/Chat");
 
+async function LoggedIn(socket, data) {
+        let token           = data['access_token'];                                           
+        const currentUserId = await helper.getCurrentUserIdByToken(token);
+
+        if (currentUserId) {
+                const presence = await Presence.findOneAndUpdate(
+                        { userID: currentUserId }, {
+                        $set: {
+                                presence: true,
+                                presenceTimeStamp: Date.now()
+                        }
+                }, options);
+
+                let userSocket = await UserSocket.findOne(
+                        { user_id: currentUserId },
+                );
+
+                if (userSocket) {
+                        userSocket.socket_id = socket.id;
+                        userSocket.save();
+                } else {
+                        userSocket = await UserSocket.create({
+                                user_id: currentUserId,
+                                socket_id: socket.id
+                        });
+                }
+
+                if (presence) {
+                        socket.broadcast.emit("updateUserPresence", {
+                                        "user_id": currentUserId,
+                                        "presence": true,
+                                        "presence_timestamp" : presence.presenceTimeStamp,
+                        });
+                }
+        }
+}
+
+async function sendActiveChat(data) {
+        const chat = await chatController.updateActiveChat(data["chatID"]);
+        
+        if (chat) {
+                _io.to(data["chatID"]).emit("receiveActiveChat",
+                        {
+                                "chatID": data["chatID"]
+                        });
+        }
+}
+
+
 class SocketService {
         connection(socket) {
-                socket.on("LoggedIn", async (data) => {                                                        
-                        let token           = data['access_token'];                                           
-                        const currentUserId = await helper.getCurrentUserIdByToken(token);
-                        
-                        if (currentUserId) {
-                                const presence = await Presence.findOneAndUpdate(
-                                        { userID: currentUserId }, {
-                                        $set: {
-                                                presence: true,
-                                                presenceTimeStamp: Date.now()
-                                        }
-                                }, options);
-                                
-                                let userSocket = await UserSocket.findOne(
-                                        { user_id: currentUserId },
-                                );
-
-                                if (userSocket) {
-                                        userSocket.socket_id = socket.id;
-                                        userSocket.save();
-                                } else {
-                                        userSocket = await UserSocket.create({
-                                                user_id: currentUserId,
-                                                socket_id: socket.id
-                                        });
-                                }
-
-                                if (presence) {
-                                        socket.broadcast.emit("updateUserPresence", {
-                                                        "user_id": currentUserId,
-                                                        "presence": true,
-                                                        "presence_timestamp" : presence.presenceTimeStamp,
-                                        });
-                                }
-                        }
-                });
-
+                socket.on("LoggedIn", (data) => LoggedIn(socket, data))
                 socket.on('joinRoom', async (data) => {
                         socket.join(data["chatID"]);
                 });
@@ -56,18 +69,7 @@ class SocketService {
                         socket.leave(data["chatID"]);
                 });
 
-                socket.on("sendActiveChat", async (data) => {
-                        console.log("sendActiveChat");
-                        console.log(data["chatID"]);
-                        const chat = await chatController.updateActiveChat(data["chatID"]);
-                        if (chat) {
-                                _io.to(data["chatID"]).emit("receiveActiveChat",
-                                        {
-                                                "chatID": data["chatID"]
-                                        });
-
-                        }
-                });
+                socket.on("sendActiveChat", (data) => sendActiveChat(data));
                 socket.on("updateMessageStatus", async (data) => {
                   const chatID = data["chatID"];
                   const messageID = data["messageID"];
