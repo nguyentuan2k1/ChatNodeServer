@@ -6,6 +6,8 @@ const Joi = require('joi');
 const helper = require('../services/helper');
 const User = require('../models/User');
 const path = require('path');
+const { io } = require('../services/socket_services');
+const fs = require('fs');
 
 let options = { returnDocument: 'after' }
 exports.insertManyChatMessage = async (req, res) => {
@@ -157,6 +159,13 @@ exports.uploadMessageImage = async (req, res) => {
                 }
 
                 const publicUrl = `${req.protocol}://${req.get('host')}/uploads/${file.filename}`;
+
+                io.emit('image-upload', {
+                        chatID: req.body.chatID,
+                        url: publicUrl,
+                        userID: req.body.userID,
+                        timestamp: new Date()
+                    });
 
                 return BaseResponse.customResponse(res, "Upload successfully", 0, 200, {
                         url : publicUrl
