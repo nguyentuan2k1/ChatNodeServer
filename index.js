@@ -13,6 +13,8 @@ const friendRouter = require("./routes/friend");
 const messageRouter = require("./routes/message");
 const chatRouter = require("./routes/chat");
 const SocketService = require("./services/socket_services");
+const cors = require("cors");
+
 dotenv.config();
 app.use(express.json());
 
@@ -24,13 +26,22 @@ mongoose
   .then(console.log("connected to MongGoDB"))
   .catch((error) => console.log(error));
 
-const io = new Server(server);
+  const io = new Server(server, {
+    cors: {
+      origin: "*", // Cho phép tất cả origin
+      methods: ["GET", "POST"]
+    }
+  });
+
+app.use(cors()); 
 
 app.use('/uploads', express.static('uploads'));
 
 global._io = io;
 global.dotenv = dotenv;
 global.dotenv.config();
+
+
 
 io.on("connection", SocketService.connection);
 
