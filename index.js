@@ -14,6 +14,7 @@ const messageRouter = require("./routes/message");
 const chatRouter = require("./routes/chat");
 const SocketService = require("./services/socket_services");
 const cors = require("cors");
+const lodash = require("lodash");
 
 dotenv.config();
 app.use(express.json());
@@ -42,6 +43,9 @@ global.dotenv = dotenv;
 global.dotenv.config();
 
 
+app.get("/health", (req, res) => {
+  res.status(200).json({ status: "OK", time: new Date().toISOString() });
+});
 
 io.on("connection", SocketService.connection);
 
@@ -59,6 +63,21 @@ app.get("/", (req, res) => {
   res.send("Its working !");
 });
 
+app.use((err, req, res, next) => {
+  console.error(`[${new Date().toISOString()}] ❌ Error ${req.method} ${req.url}: ${err.message}`);
+  res.status(500).json({ error: 'Internal Server Error' });
+});
+
 server.listen(port, () => {
   console.log(`listening on: *${port}`);
+});
+
+process.on("uncaughtException", (err) => {
+  console.error(`[${new Date().toISOString()}] ❌ Uncaught Exception:`, err);
+  // Optionally gửi Telegram ở đây
+});
+
+process.on("unhandledRejection", (reason, promise) => {
+  console.error(`[${new Date().toISOString()}] ❌ Unhandled Rejection:`, reason);
+  // Optionally gửi Telegram ở đây
 });
