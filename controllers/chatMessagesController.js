@@ -8,6 +8,8 @@ const User = require('../models/User');
 const path = require('path');
 const { io } = require('../services/socket_services');
 const fs = require('fs');
+const lodash = require('lodash');
+const mongoosePaginate = require('mongoose-paginate-v2');
 
 let options = { returnDocument: 'after' }
 exports.insertManyChatMessage = async (req, res) => {
@@ -38,7 +40,6 @@ exports.insertManyChatMessage = async (req, res) => {
                         error.toString()
                 );
         }
-
 }
 
 exports.updateStatusSentMessage = async (chatID, userID) => {
@@ -114,14 +115,17 @@ exports.takeMessagesByChatID = async (req, res) => {
 
                 const sort = { stampTimeMessage: -1 };  // Changed from 1 to -1 for descending order
 
-                let data = await Paginate.paginate(
-                    ChatMessages.find({ chatID: chatID }).sort(sort),
-                    ChatMessages.find({ chatID: chatID }),
-                    page,
-                    pageSize,
-                );
+                const options = {
+                        page: parseInt(page) || 1,
+                        limit: parseInt(pageSize) || 10,
+                        sort: sort,
+                      };
+                      
+                const data = await ChatMessages.paginate({ chatID: chatID }, options);
 
                 const userID = await helper.getInfoCurrentUser(req, res);
+                data.data = data.docs;
+                delete data.docs;
 
                 data.data = await Promise.all(data.data.map(async item => {
                         const user = await User.findById(item.userID);
@@ -142,6 +146,11 @@ exports.takeMessagesByChatID = async (req, res) => {
                                 isMine: item.userID === userID
                         };
                 }));
+
+                data.data = lodash.groupBy(data.data, message => {
+                        const date = new Date(message.stampTimeMessage);
+                        return date.toISOString().split('T')[0]; // YYYY-MM-DD
+                });
 
                 return BaseResponse.customResponse(res, "", 1, 200, data);
         } catch (error) {

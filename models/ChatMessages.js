@@ -1,4 +1,6 @@
 const mongoose = require('mongoose');
+const mongoosePaginate = require('mongoose-paginate-v2');
+
 
 const ChatMessagesSchema = new mongoose.Schema({
         chatID: {
@@ -40,5 +42,7 @@ const ChatMessagesSchema = new mongoose.Schema({
         }
 }, { collection: "ChatMessages", timestamps: true }
 );
+
+ChatMessagesSchema.plugin(mongoosePaginate);
 
 module.exports = mongoose.model("ChatMessages", ChatMessagesSchema);

@@ -9,6 +9,18 @@ const helper = require('../services/helper');
 const ChatMessages = require("../models/ChatMessages");
 const Chat = require("../models/Chat");
 
+const Server = require("socket.io");
+let _io;
+
+// ... existing code ...
+
+// Replace the last 2 lines
+module.exports = (server) => {
+    _io = new Server(server);
+    return new SocketService();
+};
+module.exports.io = () => _io;
+
 async function LoggedIn(socket, data) {
         let token           = data['access_token'];                                           
         const currentUserId = await helper.getCurrentUserIdByToken(token);

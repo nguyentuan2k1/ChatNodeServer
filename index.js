@@ -14,7 +14,6 @@ const messageRouter = require("./routes/message");
 const chatRouter = require("./routes/chat");
 const SocketService = require("./services/socket_services");
 const cors = require("cors");
-const lodash = require("lodash");
 
 dotenv.config();
 app.use(express.json());
