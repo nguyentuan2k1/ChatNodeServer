@@ -169,12 +169,35 @@ exports.uploadMessageImage = async (req, res) => {
 
                 const publicUrl = `${req.protocol}://${req.get('host')}/uploads/${file.filename}`;
 
-                io.emit('image-upload', {
-                        chatID: req.body.chatID,
-                        url: publicUrl,
-                        userID: req.body.userID,
-                        timestamp: new Date()
-                    });
+                let userID = await helper.getInfoCurrentUser(req, res);
+
+                const newMessage = await new ChatMessages({
+                chatID: req.body.chatID,
+                userID: userID,
+                message: "",
+                urlImageMessage: [publicUrl],
+                urlRecordMessage: "",
+                stampTimeMessage: new Date(),
+                typeMessage: "image",
+                messageStatus: "sent"
+                }).save();
+
+                // Get user info for the response
+                const user = await User.findById(userID);
+
+                const messageResponse = {
+                        _id: newMessage._id,
+                        userID: newMessage.userID,
+                        message: newMessage.message,
+                        urlImageMessage: newMessage.urlImageMessage,
+                        stampTimeMessage: newMessage.stampTimeMessage,
+                        typeMessage: newMessage.typeMessage,
+                        messageStatus: newMessage.messageStatus,
+                        avatar: user?.urlImage || "https://static.tuoitre.vn/tto/i/s626/2015/09/03/cho-meo-12-1441255605.jpg",
+                        isMine: true
+                };
+
+                io.to(req.body.chatID).emit('newMessage', messageResponse);
 
                 return BaseResponse.customResponse(res, "Upload successfully", 0, 200, {
                         url : publicUrl
