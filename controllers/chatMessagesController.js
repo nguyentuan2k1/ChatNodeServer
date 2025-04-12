@@ -200,7 +200,6 @@ exports.uploadMessageImage = async (req, res) => {
                         typeMessage: newMessage.typeMessage,
                         messageStatus: newMessage.messageStatus,
                         avatar: user?.urlImage || "https://static.tuoitre.vn/tto/i/s626/2015/09/03/cho-meo-12-1441255605.jpg",
-                        isMine: true
                 };
 
                 io.to(req.body.chatID).emit('newMessage', messageResponse);
