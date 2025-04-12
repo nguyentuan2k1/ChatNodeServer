@@ -6,6 +6,7 @@ const helper = require('../services/helper');
 const Presence = require("../models/Presence");
 const Joi = require('joi');
 const ChatMessages = require('../models/ChatMessages');
+const lodash = require('lodash');
 
 exports.getChat = async (chatID) => {
         return await Chat.findById(chatID);
@@ -210,10 +211,19 @@ exports.takeRoomChat = async (req, res) => {
         messageOfRoom = messageOfRoom.map(msg => ({
             ...msg.toObject(),
             avatar: userAvatarMap[msg.userID.toString()],
-            isMine: msg.userID.toString() === currentUserId.toString()
         }));
 
         let lastMessageOfRoom = messageOfRoom[messageOfRoom.length - 1];
+
+        messageOfRoom = Object.entries(
+                lodash.groupBy(messageOfRoom, message => {
+                const date = new Date(message.stampTimeMessage);
+                return date.toISOString().split('T')[0]; // YYYY-MM-DD
+            })
+        ).map(([date, messages]) => ({
+            'group-date': messages[0].stampTimeMessage,
+            messages: messages
+        }))
 
         room.typeLastMessage  = lastMessageOfRoom ? lastMessageOfRoom.typeMessage : room.typeLastMessage;
         room.messages         = messageOfRoom;
