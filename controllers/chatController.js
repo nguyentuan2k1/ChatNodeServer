@@ -221,9 +221,15 @@ exports.takeRoomChat = async (req, res) => {
                 return date.toISOString().split('T')[0]; // YYYY-MM-DD
             })
         ).map(([date, messages]) => ({
-            'group-date': messages[0].stampTimeMessage,
             messages: messages
         }))
+
+        messageOfRoom = messageOfRoom.map(group => ({
+                'group-date': group.messages[0].stampTimeMessage,
+                messages: group.messages.sort((a, b) => 
+                        new Date(a.stampTimeMessage) - new Date(b.stampTimeMessage)
+                )
+        }));
 
         room.typeLastMessage  = lastMessageOfRoom ? lastMessageOfRoom.typeMessage : room.typeLastMessage;
         room.messages         = messageOfRoom;
