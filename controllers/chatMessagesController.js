@@ -149,13 +149,19 @@ exports.takeMessagesByChatID = async (req, res) => {
 
                 const groupedData = lodash.groupBy(data.data, message => {
                         const date = new Date(message.stampTimeMessage);
-                        return date.toISOString().split('T')[0]; // YYYY-MM-DD
+                        return date.toISOString().split('T')[0]; 
                 });
 
                 // Transform the grouped data to include group-date
                 data.data = Object.entries(groupedData).map(([date, messages]) => ({
-                        'group-date': messages[0].stampTimeMessage,
                         messages: messages
+                }));
+
+                data.data = data.data.map(group => ({
+                    'group-date': group.messages[0].stampTimeMessage,
+                    messages: group.messages.sort((a, b) => 
+                        new Date(a.stampTimeMessage) - new Date(b.stampTimeMessage)
+                    )
                 }));
 
                 return BaseResponse.customResponse(res, "", 1, 200, data);
