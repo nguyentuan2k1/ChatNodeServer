@@ -63,27 +63,39 @@ exports.register = async (req, res) => {
                 });
 
                 const user = await newUser.save();
-                const newPresence = new Presence({
-                        userID: user.id,
-                        presence: false,
-                        presenceTimeStamp: Date.now()
-                });
+                const {accessToken, refreshToken, expiredTime, refreshExpiredTime} = await getTokens(user);
 
-                await newPresence.save();
+                const updatePresence = await Presence.findOneAndUpdate(
+                        { userID: user.id }, // Điều kiện tìm kiếm
+                        {
+                          $set: {
+                            presence: true,
+                          }
+                        },
+                        { 
+                          new: true,        
+                          upsert: true      
+                        }
+                      );
 
-                const {accessToken} = await getTokens(newUser);
+                const { email, name, isDarkMode, urlImage, deviceToken, phone } = user;
+                const { presenceTimeStamp } = updatePresence;
 
-                let {email, name, isDarkMode, urlImage, deviceToken, phone} = newUser;
-
-                return customResponse(res, "Register Successfully!", 1, 200, {
+                return customResponse(res, "Register successfully", 1, 200, {
+                        accessToken,
+                        refreshToken,
                         email,
                         name,
                         isDarkMode,
-                        urlImage,
-                        accessToken,
+                        urlImage : urlImage ? urlImage : "https://static.tuoitre.vn/tto/i/s626/2015/09/03/cho-meo-12-1441255605.jpg",
+                        presenceTimeStamp,
                         deviceToken,
-                        phone
+                        phone,
+                        userID: user.id,
+                        "token_expired" : expiredTime,
+                        "refresh_token_expired" : refreshExpiredTime
                 });
+
         } catch (error) {
                 return customResponse(res, error.toString(), 0, 500);
         }
@@ -91,6 +103,7 @@ exports.register = async (req, res) => {
 
 exports.login = async (req, res) => {
         try {
+
                 let schema = Joi.object({
                         email: Joi.string()
                             .email()
