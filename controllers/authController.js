@@ -71,7 +71,7 @@ exports.register = async (req, res) => {
 
                 await newPresence.save();
 
-                const {accessToken} = await getAccessToken(newUser);
+                const {accessToken} = await getTokens(newUser);
 
                 let {email, name, isDarkMode, urlImage, deviceToken, phone} = newUser;
 

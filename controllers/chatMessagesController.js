@@ -184,7 +184,7 @@ exports.uploadMessageImage = async (req, res) => {
                 let userID = await helper.getInfoCurrentUser(req, res);
 
                 const newMessage = await new ChatMessages({
-                chatID: req.body.chatID,
+                chatID: userID,
                 userID: userID,
                 message: "",
                 urlImageMessage: [publicUrl],
@@ -208,12 +208,15 @@ exports.uploadMessageImage = async (req, res) => {
                         avatar: user?.urlImage || "https://static.tuoitre.vn/tto/i/s626/2015/09/03/cho-meo-12-1441255605.jpg",
                 };
 
+                console.log(io);
+
                 io.to(req.body.chatID).emit('newMessage', messageResponse);
 
                 return BaseResponse.customResponse(res, "Upload successfully", 0, 200, {
                         url : publicUrl
                 });
         } catch (error) {
+                console.error('Error in uploadMessageImage:', error);
                 return BaseResponse.customResponse(res, error.message, 0, 400);
         }
 }
