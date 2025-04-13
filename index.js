@@ -1,11 +1,11 @@
 const express = require("express");
 const app = express();
 const http = require("http");
-const server = http.createServer(app);
+const serverHttp = http.createServer(app);
 const dotenv = require("dotenv");
 const port = process.env.PORT || 5000;
 // const port = process.env.PORT;
-const { Server } = require("socket.io");
+const { Server  } = require("socket.io");
 const mongoose = require("mongoose");
 const authRouter = require("./routes/auth");
 const userRouter = require("./routes/user");
@@ -26,7 +26,7 @@ mongoose
   .then(console.log("connected to MongGoDB"))
   .catch((error) => console.log(error));
 
-  const io = new Server(server, {
+  const io = new Server(serverHttp, {
     cors: {
       origin: "*", // Cho phép tất cả origin
       methods: ["GET", "POST"]
@@ -67,7 +67,7 @@ app.use((err, req, res, next) => {
   res.status(500).json({ error: 'Internal Server Error' });
 });
 
-server.listen(port, () => {
+serverHttp.listen(port, () => {
   console.log(`listening on: *${port}`);
 });
 
